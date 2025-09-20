@@ -2,10 +2,7 @@ using UnityEngine;
 
 public class LoadScene : MonoBehaviour
 {
-    [Header("Scene Settings")]
     public string sceneName;
-
-    [Header("Auto Load")]
     public bool loadOnStart = false;
 
     [Header("Fade override (opcional)")]
@@ -19,15 +16,11 @@ public class LoadScene : MonoBehaviour
 
     public void LoadTargetScene()
     {
-        if (string.IsNullOrEmpty(sceneName))
-        {
-            Debug.LogWarning("LoadScene: No scene name specified!");
-            return;
-        }
+        if (string.IsNullOrEmpty(sceneName)) { Debug.LogWarning("LoadScene: No scene name specified!"); return; }
 
         if (fadeOverride != null)
             SceneTransitionLoader.Load(sceneName, fadeOverride, fadeDelay);
         else
-            SceneTransitionLoader.Load(sceneName); // default del servicio
+            SceneTransitionLoader.Load(sceneName); // usa el default del servicio
     }
 }

@@ -10,15 +10,22 @@ public class EnvironmentController : MonoBehaviour
     public Material exteriorSkyboxOverride;   // si lo pones, se usará al volver a exterior
     public Camera targetCamera;               // si lo dejas vacío, se resuelve solo
 
-    // snapshot del “exterior”
+    enum Mode { Unknown, Exterior, Interior }
+    Mode _mode = Mode.Unknown;
+
+    // snapshot del “exterior” (para restaurar al salir)
     Material _savedRenderSettingsSkybox;
     Material _savedCameraSkyboxMat;
     CameraClearFlags _savedClearFlags = CameraClearFlags.Skybox;
     bool _savedHadCamSkybox;
     bool _hasSnapshot;
-    Camera _snapshotCam;  // cámara usada al capturar (por si cambia)
+    Camera _snapshotCam;
 
-    Camera _cam;
+    // tracking de cámara / re-aplicación
+    Camera _cam;              // cámara resuelta actual
+    Camera _appliedCam;       // cámara sobre la que aplicamos por última vez
+    bool _needReapply;        // si true, re-aplicamos en Update
+    AnchorEnvironment _currentInterior; // último env de interior aplicado (para re-aplicar)
 
     void Awake()
     {
@@ -26,109 +33,66 @@ public class EnvironmentController : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
-        SceneManager.activeSceneChanged += (_, __) => ResetCache();
-        SceneManager.sceneLoaded       += (_, __) => ResetCache();
+        SceneManager.activeSceneChanged += (_, __) => OnSceneChanged();
+        SceneManager.sceneLoaded       += (_, __) => OnSceneChanged();
     }
 
-    void ResetCache()
+    void OnSceneChanged()
     {
-        _cam = null;
-        _hasSnapshot = false;
-        _snapshotCam = null;
-        _savedCameraSkyboxMat = null;
-        _savedRenderSettingsSkybox = null;
-        _savedHadCamSkybox = false;
+        _cam = null; _appliedCam = null;
+        // no invalidamos el snapshot: si estabas en interior, lo necesitamos para volver a exterior
+        _needReapply = (_mode != Mode.Unknown); // re-aplicar el modo actual cuando haya cámara
+    }
+
+    void Update()
+    {
+        var camNow = ResolveCamera();
+        if (camNow != _appliedCam) _needReapply = true;
+
+        if (_needReapply && camNow != null)
+        {
+            Reapply(camNow);
+            _needReapply = false;
+        }
+    }
+
+    // === API pública ===
+    public void ApplyInterior(AnchorEnvironment env)
+    {
+        _mode = Mode.Interior;
+        _currentInterior = env;
+
+        // Capturamos el “exterior” una sola vez, antes de forzar interior
+        if (!_hasSnapshot) CaptureExteriorSnapshot();
+
+        var cam = ResolveCamera();
+        ApplyInteriorTo(cam, env);   // si cam es null, haremos reapply cuando exista
+    }
+
+    public void ApplyExterior()
+    {
+        _mode = Mode.Exterior;
+        _currentInterior = null;
+
+        var cam = ResolveCamera();
+        ApplyExteriorTo(cam);
     }
 
     public void RefreshCameraNow()
     {
         _cam = ResolveCamera();
-        // no capturamos aún; la captura se hace al primer ApplyInterior()
-        _hasSnapshot = false;
+        _needReapply = (_mode != Mode.Unknown);
     }
 
-    public void ApplyInterior(AnchorEnvironment env)
+    // === implementación ===
+    void Reapply(Camera cam)
     {
-        EnsureSnapshot(); // capturamos si aún no lo hicimos
-
-        var cam = ResolveCamera();
-        if (env && env.useSolidColorBackground)
-        {
-            if (cam) { cam.clearFlags = CameraClearFlags.SolidColor; cam.backgroundColor = env.interiorBgColor; }
-            RenderSettings.skybox = null;
-        }
-        else
-        {
-            if (cam) cam.clearFlags = CameraClearFlags.Skybox;
-            RenderSettings.skybox = (env && env.interiorSkyboxOverride) ? env.interiorSkyboxOverride : null;
-        }
-
-        // apagar direccionales de exterior; dejar sólo las del interior si existen
-        foreach (var l in FindObjectsOfType<Light>(true))
-        {
-            if (!l || l.type != LightType.Directional) continue;
-            bool inside = env && IsChildOf(l.transform, env.transform);
-            l.gameObject.SetActive(inside);
-        }
-
-        // encender luces locales del interior (aunque no estén en arrays)
-        if (env)
-        {
-            SetActive(env.lightsDisableOnEnter, false);
-            SetActive(env.lightsEnableOnEnter, true);
-            foreach (var l in env.GetComponentsInChildren<Light>(true)) if (l) l.gameObject.SetActive(true);
-        }
-
-        DynamicGI.UpdateEnvironment();
+        if (_mode == Mode.Interior) ApplyInteriorTo(cam, _currentInterior, reapply:true);
+        else if (_mode == Mode.Exterior) ApplyExteriorTo(cam);
     }
 
-    public void ApplyExterior()
+    void CaptureExteriorSnapshot()
     {
-        var cam = ResolveCamera();
-
-        // 1) clear flags
-        if (cam) cam.clearFlags = _hasSnapshot ? _savedClearFlags : CameraClearFlags.Skybox;
-
-        // 2) skybox
-        if (exteriorSkyboxOverride)
-        {
-            // fuerza un skybox global concreto
-            RenderSettings.skybox = exteriorSkyboxOverride;
-            var csb = EnsureCameraSkybox(cam);
-            if (csb) csb.material = exteriorSkyboxOverride;
-        }
-        else if (_hasSnapshot)
-        {
-            // restaura lo que había antes: preferir material de la cámara si lo tenía
-            if (_savedHadCamSkybox)
-            {
-                var csb = EnsureCameraSkybox(cam);
-                if (csb) csb.material = _savedCameraSkyboxMat;
-            }
-            else
-            {
-                // no había skybox en la cámara: usa el RenderSettings antiguo
-                RenderSettings.skybox = _savedRenderSettingsSkybox;
-                // si la cámara tiene un componente Skybox colgado por cualquier motivo, lo vaciamos
-                var csb = cam ? cam.GetComponent<Skybox>() : null;
-                if (csb) csb.material = null;
-            }
-        }
-        // si no hay snapshot y tampoco override, dejamos lo que estuviera
-
-        // 3) reactivar direccionales
-        foreach (var l in FindObjectsOfType<Light>(true))
-            if (l && l.type == LightType.Directional) l.gameObject.SetActive(true);
-
-        DynamicGI.UpdateEnvironment();
-    }
-
-    // -------- internos --------
-
-    void EnsureSnapshot()
-    {
-        if (_hasSnapshot) return;
-
         var cam = ResolveCamera();
 
         _savedClearFlags = cam ? cam.clearFlags : CameraClearFlags.Skybox;
@@ -151,30 +115,106 @@ public class EnvironmentController : MonoBehaviour
         _hasSnapshot = true;
     }
 
+    void ApplyInteriorTo(Camera cam, AnchorEnvironment env, bool reapply = false)
+    {
+        // si no hay cámara aún, marca para re-aplicar cuando aparezca
+        if (!cam)
+        {
+            // al menos quita el skybox global para mitigar
+            RenderSettings.skybox = (env && env.interiorSkyboxOverride) ? env.interiorSkyboxOverride : null;
+            _needReapply = true;
+            return;
+        }
+
+        if (env && env.useSolidColorBackground)
+        {
+            cam.clearFlags = CameraClearFlags.SolidColor;
+            cam.backgroundColor = env.interiorBgColor;
+            RenderSettings.skybox = null;
+        }
+        else
+        {
+            cam.clearFlags = CameraClearFlags.Skybox;
+            RenderSettings.skybox = (env && env.interiorSkyboxOverride) ? env.interiorSkyboxOverride : null;
+        }
+
+        // luces: apaga direccionales que no estén dentro del interior
+        foreach (var l in FindObjectsOfType<Light>(true))
+        {
+            if (!l || l.type != LightType.Directional) continue;
+            bool inside = env && IsChildOf(l.transform, env.transform);
+            l.gameObject.SetActive(inside);
+        }
+
+        // enciende luces locales del interior (aunque no estén en los arrays)
+        if (env)
+        {
+            SetActive(env.lightsDisableOnEnter, false);
+            SetActive(env.lightsEnableOnEnter, true);
+            foreach (var l in env.GetComponentsInChildren<Light>(true))
+                if (l) l.gameObject.SetActive(true);
+        }
+
+        _appliedCam = cam;
+        DynamicGI.UpdateEnvironment();
+    }
+
+    void ApplyExteriorTo(Camera cam)
+    {
+        if (cam) cam.clearFlags = _hasSnapshot ? _savedClearFlags : CameraClearFlags.Skybox;
+
+        if (exteriorSkyboxOverride)
+        {
+            RenderSettings.skybox = exteriorSkyboxOverride;
+            var csb = EnsureCameraSkybox(cam);
+            if (csb) csb.material = exteriorSkyboxOverride;
+        }
+        else if (_hasSnapshot)
+        {
+            if (_savedHadCamSkybox)
+            {
+                var csb = EnsureCameraSkybox(cam);
+                if (csb) csb.material = _savedCameraSkyboxMat;
+            }
+            else
+            {
+                RenderSettings.skybox = _savedRenderSettingsSkybox;
+                var csb = cam ? cam.GetComponent<Skybox>() : null;
+                if (csb) csb.material = null;
+            }
+        }
+
+        foreach (var l in FindObjectsOfType<Light>(true))
+            if (l && l.type == LightType.Directional) l.gameObject.SetActive(true);
+
+        _appliedCam = cam;
+        DynamicGI.UpdateEnvironment();
+    }
+
     Camera ResolveCamera()
     {
         if (targetCamera) return targetCamera;
         if (_cam && _cam) return _cam;
 
-        // 1) MainCamera si existe y está activa
+        // 1) MainCamera
         var m = Camera.main;
         if (m && m.enabled && m.gameObject.activeInHierarchy) return _cam = m;
 
-        // 2) la “mejor” cámara disponible (incluye inactivas)
+        // 2) mejor cámara disponible (incluye inactivas)
 #if UNITY_2022_3_OR_NEWER
         var cams = Object.FindObjectsByType<Camera>(FindObjectsInactive.Include, FindObjectsSortMode.None);
 #else
         var cams = Resources.FindObjectsOfTypeAll<Camera>();
 #endif
-        Camera best = null; float bestScore = float.NegativeInfinity;
+        Camera best = null; float scoreBest = float.NegativeInfinity;
         foreach (var c in cams)
         {
             if (!c) continue;
-            float score = 0f;
-            if (c.enabled && c.gameObject.activeInHierarchy) score += 1000f;
-            if (c.targetDisplay == 0) score += 100f;
-            score += c.depth;
-            if (score > bestScore) { bestScore = score; best = c; }
+            float s = 0f;
+            if (c.enabled && c.gameObject.activeInHierarchy) s += 1000f;
+            if (c.targetDisplay == 0) s += 100f;
+            s += c.depth;
+            if (s > scoreBest) { scoreBest = s; best = c; }
         }
         return _cam = best;
     }

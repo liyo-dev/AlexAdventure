@@ -103,20 +103,19 @@ public class TeleportService : MonoBehaviour
     }
 
     // ================== Núcleo transición / movimiento ==================
-
+    
     private void TeleportWithTransition(GameObject player, Vector3 worldPos, Quaternion worldRot, Transform anchorForEnv)
     {
-        var tm = TransitionManager.Instance();
+        var tm = FindTM(); // ← seguro, no usa Instance()
         if (tm == null || !teleportTransition)
         {
-            if (tm == null) Debug.LogWarning("[TeleportService] TransitionManager no encontrado. Teleport inmediato.");
-            if (!teleportTransition) Debug.LogWarning("[TeleportService] TransitionSettings no asignado. Teleport inmediato.");
+            // Si el manager aún no está o no tienes settings, teleporta sin fade (no rompe)
             MoveNow(player, worldPos, worldRot, anchorForEnv);
             return;
         }
 
-        UnityAction onCut = null;
-        UnityAction onEnd = null;
+        UnityEngine.Events.UnityAction onCut = null;
+        UnityEngine.Events.UnityAction onEnd = null;
 
         onCut = () =>
         {
@@ -133,6 +132,7 @@ public class TeleportService : MonoBehaviour
         tm.onTransitionCutPointReached += onCut;
         tm.onTransitionEnd            += onEnd;
 
+        // OJO: usamos la versión SIN cambio de escena del plugin (la estable)
         tm.Transition(teleportTransition, transitionDelay);
     }
 
@@ -187,4 +187,14 @@ public class TeleportService : MonoBehaviour
         var go = GameObject.Find(name);
         return go ? go.transform : null;
     }
+    
+    static EasyTransition.TransitionManager FindTM()
+    {
+#if UNITY_2022_3_OR_NEWER
+        return Object.FindFirstObjectByType<EasyTransition.TransitionManager>(FindObjectsInactive.Include);
+#else
+    return Object.FindObjectOfType<EasyTransition.TransitionManager>(true);
+#endif
+    }
+
 }

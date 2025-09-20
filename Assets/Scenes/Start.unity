@@ -385,7 +385,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1932988362}
   - component: {fileID: 1932988363}
-  - component: {fileID: 1932988364}
   m_Layer: 0
   m_Name: EnvironmentController
   m_TagString: Untagged
@@ -422,18 +421,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnvironmentController
   exteriorSkyboxOverride: {fileID: 0}
   targetCamera: {fileID: 0}
---- !u!114 &1932988364
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1932988361}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 48e28205bb11adb4f86de7a46418e964, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnvRefreshOnStart
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
