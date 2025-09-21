@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using QuestState = QuesStateEnum;
 
 [Serializable]
 public struct QuestProgressEntry

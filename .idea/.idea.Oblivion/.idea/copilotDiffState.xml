@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CopilotDiffPersistence">
+    <option name="pendingDiffs">
+      <map>
+        <entry key="$PROJECT_DIR$/Assets/Scripts/Core/Identifiers.cs">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/Assets/Scripts/Core/Identifiers.cs" />
+              <option name="originalContent" value="public enum AbilityId { PhysicalAttack, MagicAttack, Dash, Block }&#10;public enum SpellId   { None, Fireball, IceSpike, Storm, Lightning, FireSpecial }&#10;public enum DamageKind { Physical, Magic, Special }&#10;public enum QuesStateEnum { NotStarted, Active, Completed }&#10;public enum MagicSlot   { Left, Right, Special }&#10;public enum MagicKind   { Projectile, Special }&#10;public enum MagicElement{ Fire, Ice, Storm, Light }&#10;public enum SpellSlotType { Any, SpecialOnly }&#10;&#10;public enum QuestState&#10;{&#10;    Inactive = 0,&#10;    Active   = 1,&#10;    Completed= 2,&#10;    Failed   = 3&#10;}&#10;" />
+              <option name="updatedContent" value="public enum AbilityId { PhysicalAttack, MagicAttack, Dash, Block }&#10;public enum SpellId   { None, Fireball, IceSpike, Storm, Lightning, FireSpecial }&#10;public enum DamageKind { Physical, Magic, Special }&#10;public enum QuesStateEnum { NotStarted, Active, Completed }&#10;public enum MagicSlot   { Left, Right, Special }&#10;public enum MagicKind   { Projectile, Special }&#10;public enum MagicElement{ Fire, Ice, Storm, Light }&#10;public enum SpellSlotType { Any, SpecialOnly }&#10;public enum QuestState { Inactive = 0, Active = 1, Completed = 2, Failed = 3 }" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>

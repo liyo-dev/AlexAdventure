@@ -181,6 +181,15 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""Interact"",
+                    ""type"": ""Button"",
+                    ""id"": ""6ba560b9-17b4-4092-b5e6-378129499328"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -291,6 +300,17 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""FlyThrust"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b78d13b1-8763-42f7-a907-86eaba5810f2"",
+                    ""path"": ""<Gamepad>/buttonSouth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Interact"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -827,6 +847,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         m_GamePlay_CameraLook = m_GamePlay.FindAction("CameraLook", throwIfNotFound: true);
         m_GamePlay_FlyToggle = m_GamePlay.FindAction("FlyToggle", throwIfNotFound: true);
         m_GamePlay_FlyThrust = m_GamePlay.FindAction("FlyThrust", throwIfNotFound: true);
+        m_GamePlay_Interact = m_GamePlay.FindAction("Interact", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -930,6 +951,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     private readonly InputAction m_GamePlay_CameraLook;
     private readonly InputAction m_GamePlay_FlyToggle;
     private readonly InputAction m_GamePlay_FlyThrust;
+    private readonly InputAction m_GamePlay_Interact;
     /// <summary>
     /// Provides access to input actions defined in input action map "GamePlay".
     /// </summary>
@@ -981,6 +1003,10 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "GamePlay/FlyThrust".
         /// </summary>
         public InputAction @FlyThrust => m_Wrapper.m_GamePlay_FlyThrust;
+        /// <summary>
+        /// Provides access to the underlying input action "GamePlay/Interact".
+        /// </summary>
+        public InputAction @Interact => m_Wrapper.m_GamePlay_Interact;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -1037,6 +1063,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @FlyThrust.started += instance.OnFlyThrust;
             @FlyThrust.performed += instance.OnFlyThrust;
             @FlyThrust.canceled += instance.OnFlyThrust;
+            @Interact.started += instance.OnInteract;
+            @Interact.performed += instance.OnInteract;
+            @Interact.canceled += instance.OnInteract;
         }
 
         /// <summary>
@@ -1078,6 +1107,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @FlyThrust.started -= instance.OnFlyThrust;
             @FlyThrust.performed -= instance.OnFlyThrust;
             @FlyThrust.canceled -= instance.OnFlyThrust;
+            @Interact.started -= instance.OnInteract;
+            @Interact.performed -= instance.OnInteract;
+            @Interact.canceled -= instance.OnInteract;
         }
 
         /// <summary>
@@ -1383,6 +1415,13 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnFlyThrust(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Interact" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnInteract(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "UI" which allows adding and removing callbacks.

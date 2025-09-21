@@ -6,4 +6,4 @@ public enum MagicSlot   { Left, Right, Special }
 public enum MagicKind   { Projectile, Special }
 public enum MagicElement{ Fire, Ice, Storm, Light }
 public enum SpellSlotType { Any, SpecialOnly }
-
+public enum QuestState { Inactive = 0, Active = 1, Completed = 2, Failed = 3 }
