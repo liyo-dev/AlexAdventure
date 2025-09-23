@@ -81,10 +81,12 @@ public class InteractionDetector : MonoBehaviour
         }
 
         // Deshabilita Jump mientras hay foco (para que A no salte)
+        // PERO no lo reactives si hay diálogo abierto
         if (disableJumpWhenFocused && ja != null)
         {
             if (current && ja.enabled) ja.Disable();
-            else if (!current && !ja.enabled) ja.Enable();
+            else if (!current && !ja.enabled && !(DialogueManager.Instance != null && DialogueManager.Instance.IsOpen)) 
+                ja.Enable();
         }
     }
 
