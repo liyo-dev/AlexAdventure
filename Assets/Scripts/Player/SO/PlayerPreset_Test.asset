@@ -14,12 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerPresetSO
   level: 1
   maxHP: 100
-  currentHP: 100
+  currentHP: 50
   maxMP: 50
   currentMP: 50
   unlockedAbilities: 01000000
   unlockedSpells: 010000000500000002000000
   leftSpellId: 1
-  rightSpellId: 2
-  specialSpellId: 5
+  rightSpellId: 0
+  specialSpellId: 0
   flags: []

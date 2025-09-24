@@ -136,8 +136,13 @@ public class DialogueManager : MonoBehaviour
 
         if (portraitImage)
         {
-            portraitImage.enabled = (line.portrait != null);
-            portraitImage.sprite = line.portrait;
+            if (line.portrait != null)
+            {
+                portraitImage.sprite = line.portrait;
+                portraitImage.enabled = true;
+            }
+            // Solo ocultar si explícitamente se quiere ocultar
+            // Si line.portrait es null, mantener el portrait anterior visible
         }
     }
 

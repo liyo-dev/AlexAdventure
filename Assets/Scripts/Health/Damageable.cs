@@ -59,6 +59,22 @@ public class Damageable : MonoBehaviour, IDamageable
         if (debugLogs) Debug.Log($"[Damageable:{name}] +{amount:0.##} -> {Current:0.##}/{Max}");
     }
 
+    /// <summary>Método para que PlayerState pueda establecer máximo y actual simultáneamente</summary>
+    public void SetMaxAndCurrent(float newMax, float newCurrent)
+    {
+        maxHealth = Mathf.Max(1f, newMax);
+        Current = Mathf.Clamp(newCurrent, 0f, maxHealth);
+        
+        if (debugLogs) Debug.Log($"[Damageable:{name}] SetMaxAndCurrent -> {Current:0.##}/{maxHealth}");
+    }
+
+    /// <summary>Establece solo la vida máxima, manteniendo el current clampeado</summary>
+    public void SetMaxHealth(float newMax)
+    {
+        maxHealth = Mathf.Max(1f, newMax);
+        Current = Mathf.Clamp(Current, 0f, maxHealth);
+    }
+
     public void Kill()
     {
         if (!IsAlive) return;

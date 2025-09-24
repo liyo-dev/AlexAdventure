@@ -1,11 +1,10 @@
 using System.Collections.Generic;
-using System.Reflection;
 using UnityEngine;
 
 [DisallowMultipleComponent]
 public class PlayerState : MonoBehaviour
 {
-    // ===== RUNTIME =====
+    // ===== RUNTIME STATS =====
     public int    Level      { get; private set; }
     public float  MaxHp      { get; private set; }
     public float  CurrentHp  { get; private set; }
@@ -18,11 +17,11 @@ public class PlayerState : MonoBehaviour
     readonly HashSet<SpellId>   _spells    = new();
     readonly HashSet<string>    _flags     = new();
 
-    // Refs opcionales (no serializadas)
-    Damageable _damageable;
-    ManaPool   _mana;
+    // Referencias a otros componentes del jugador (opcional)
+    ManaPool _mana;
+    PlayerHealthSystem _healthSystem;
 
-    // Eventos opcionales
+    // Eventos para notificar cambios
     public System.Action OnAbilitiesChanged;
     public System.Action OnSpellsChanged;
     public System.Action OnFlagsChanged;
@@ -30,8 +29,9 @@ public class PlayerState : MonoBehaviour
 
     void Awake()
     {
-        _damageable = GetComponent<Damageable>();
-        _mana       = GetComponent<ManaPool>();
+        // Buscar componentes relacionados (no requeridos)
+        _mana = GetComponent<ManaPool>();
+        _healthSystem = GetComponent<PlayerHealthSystem>();
     }
 
     // ===== CARGA DESDE SAVE / PRESET =====
@@ -92,35 +92,15 @@ public class PlayerState : MonoBehaviour
 
     public void ApplyToComponents()
     {
-        if (_mana) _mana.Init(MaxMp, CurrentMp);
-
-        if (_damageable)
+        // Sincronizar con ManaPool
+        if (_mana) 
         {
-            // Preferimos un setter si existe
-            var mSet = _damageable.GetType().GetMethod(
-                "SetMaxAndCurrent",
-                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
-                null, new[] { typeof(float), typeof(float) }, null);
-
-            if (mSet != null)
-            {
-                mSet.Invoke(_damageable, new object[] { MaxHp, Mathf.Clamp(CurrentHp, 0f, MaxHp) });
-            }
-            else
-            {
-                // Fallback: sólo subimos vida si es necesario (bajar la hará gameplay)
-                var pCur = _damageable.GetType().GetProperty("Current", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                var mHeal = _damageable.GetType().GetMethod("Heal", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new[] { typeof(float) }, null);
-                if (pCur != null && pCur.CanRead && mHeal != null)
-                {
-                    float cur = (float)pCur.GetValue(_damageable, null);
-                    float target = Mathf.Clamp(CurrentHp, 0f, MaxHp);
-                    float diff = target - cur;
-                    if (diff > 0.01f) mHeal.Invoke(_damageable, new object[] { diff });
-                }
-            }
+            _mana.Init(MaxMp, CurrentMp);
         }
 
+        // IMPORTANTE: Ya no usamos Damageable para el jugador
+        // El PlayerHealthSystem se sincroniza automáticamente mediante eventos
+        
         OnStatsChanged?.Invoke();
     }
 
@@ -143,10 +123,10 @@ public class PlayerState : MonoBehaviour
         if (ch) OnFlagsChanged?.Invoke();
     }
 
-    // Setters de stats (por si HUD / debug)
+    // Setters de stats (por si HUD / debug / gameplay)
     public void SetLevel(int v)       { Level = Mathf.Max(1, v); OnStatsChanged?.Invoke(); }
-    public void SetMaxHealth(float v) { MaxHp = Mathf.Max(1f, v); CurrentHp = Mathf.Clamp(CurrentHp, 0f, MaxHp); ApplyToComponents(); }
-    public void SetHealth(float v)    { CurrentHp = Mathf.Clamp(v, 0f, MaxHp); ApplyToComponents(); }
+    public void SetMaxHealth(float v) { MaxHp = Mathf.Max(1f, v); CurrentHp = Mathf.Clamp(CurrentHp, 0f, MaxHp); OnStatsChanged?.Invoke(); }
+    public void SetHealth(float v)    { CurrentHp = Mathf.Clamp(v, 0f, MaxHp); OnStatsChanged?.Invoke(); }
     public void SetMaxMana(float v)   { MaxMp = Mathf.Max(0f, v); CurrentMp = Mathf.Clamp(CurrentMp, 0f, MaxMp); ApplyToComponents(); }
     public void SetMana(float v)      { CurrentMp = Mathf.Clamp(v, 0f, MaxMp); if (_mana) _mana.Init(MaxMp, CurrentMp); OnStatsChanged?.Invoke(); }
 
@@ -154,4 +134,37 @@ public class PlayerState : MonoBehaviour
     public List<AbilityId> GetAbilitiesSnapshot() => new(_abilities);
     public List<SpellId>   GetSpellsSnapshot()    => new(_spells);
     public List<string>    GetFlagsSnapshot()     => new(_flags);
+
+    // ===== MÉTODOS PÚBLICOS PARA SISTEMAS EXTERNOS =====
+    
+    /// <summary>Obtiene todas las habilidades desbloqueadas</summary>
+    public IReadOnlyCollection<AbilityId> GetUnlockedAbilities() => _abilities;
+    
+    /// <summary>Obtiene todos los hechizos desbloqueados</summary>
+    public IReadOnlyCollection<SpellId> GetUnlockedSpells() => _spells;
+    
+    /// <summary>Obtiene todas las flags activas</summary>
+    public IReadOnlyCollection<string> GetActiveFlags() => _flags;
+
+    /// <summary>Verifica si el jugador está vivo</summary>
+    public bool IsAlive => CurrentHp > 0f;
+    
+    /// <summary>Obtiene el porcentaje de vida (0-1)</summary>
+    public float HealthPercentage => MaxHp > 0 ? CurrentHp / MaxHp : 0f;
+    
+    /// <summary>Obtiene el porcentaje de maná (0-1)</summary>
+    public float ManaPercentage => MaxMp > 0 ? CurrentMp / MaxMp : 0f;
+
+#if UNITY_EDITOR
+    void OnValidate()
+    {
+        MaxHp = Mathf.Max(1f, MaxHp);
+        MaxMp = Mathf.Max(0f, MaxMp);
+        if (Application.isPlaying)
+        {
+            CurrentHp = Mathf.Clamp(CurrentHp, 0f, MaxHp);
+            CurrentMp = Mathf.Clamp(CurrentMp, 0f, MaxMp);
+        }
+    }
+#endif
 }
