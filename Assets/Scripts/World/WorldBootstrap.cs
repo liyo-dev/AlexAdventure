@@ -2,60 +2,87 @@ using UnityEngine;
 
 public class WorldBootstrap : MonoBehaviour
 {
-    [Header("Perfil de arranque (SO)")]
-    public GameBootProfile profile;
+    private SaveSystem _saveSystem;
+    private bool _initialized;
 
-    private SaveSystem saveSystem;
-
-    private void Start()
+    void OnEnable()
     {
-        saveSystem = FindFirstObjectByType<SaveSystem>();
+        GameBootService.OnProfileReady += HandleProfileReady;
+        if (GameBootService.IsAvailable)
+        {
+            HandleProfileReady();
+        }
+    }
+
+    void OnDisable()
+    {
+        GameBootService.OnProfileReady -= HandleProfileReady;
+    }
+
+    private void HandleProfileReady()
+    {
+        if (_initialized) return;
+        InitializeWorld();
+        _initialized = true;
+        GameBootService.OnProfileReady -= HandleProfileReady;
+    }
+
+    private void InitializeWorld()
+    {
+        // Usar GameBootService en lugar del singleton
+        var bootProfile = GameBootService.Profile;
+        if (bootProfile == null)
+        {
+            Debug.LogError("[WorldBootstrap] ¡No se encontró GameBootProfile en GameBootService!");
+            return;
+        }
+
+        _saveSystem = FindFirstObjectByType<SaveSystem>();
 
         // 1) Modo PRESET (test): ignora el save
-        if (profile && profile.ShouldBootFromPreset())
+        if (bootProfile.ShouldBootFromPreset())
         {
-            var ps = FindFirstObjectByType<PlayerState>();
-            if (ps) profile.ApplyBootPreset(ps);
-
-            var anchor = profile.GetStartAnchorOrDefault();
+            var anchor = bootProfile.GetStartAnchorOrDefault();
             SpawnManager.SetCurrentAnchor(anchor);
 
-            var playerGO = ps ? ps.gameObject : FindFirstObjectByType<PlayerState>()?.gameObject;
-            if (playerGO) TeleportService.PlaceAtAnchor(playerGO, anchor, immediate: true);
+            var playerGo = GameObject.FindWithTag("Player");
+            if (playerGo) TeleportService.PlaceAtAnchor(playerGo, anchor, immediate: true);
 
-            // PRESET forzado: no necesitamos runtimePreset, el servicio leerá bootPreset.
+            Debug.Log("[WorldBootstrap] Iniciado en modo PRESET");
             return;
         }
 
         // 2) Flujo normal: intentar cargar partida
-        string anchorId = profile ? profile.defaultAnchorId : "Bedroom";
+        string anchorId = bootProfile.defaultAnchorId;
         if (string.IsNullOrEmpty(anchorId)) anchorId = "Bedroom";
 
-        if (saveSystem != null && saveSystem.Load(out var data))
+        if (_saveSystem != null && _saveSystem.Load(out var data))
         {
             if (!string.IsNullOrEmpty(data.lastSpawnAnchorId))
                 anchorId = data.lastSpawnAnchorId;
 
-            var ps = FindFirstObjectByType<PlayerState>();
-            if (ps) ps.LoadFromSave(data);
+            // Actualizar runtimePreset con los datos del save
+            var slotTemplate = bootProfile.bootPreset ? bootProfile.bootPreset : bootProfile.defaultPlayerPreset;
+            bootProfile.SetRuntimePresetFromSave(data, slotTemplate);
 
-            // ==== NUEVO: reflejar save en runtimePreset (para que los servicios lo lean) ====
-            if (profile)
-            {
-                var slotTemplate = profile.bootPreset ? profile.bootPreset : profile.defaultPlayerPreset;
-                profile.SetRuntimePresetFromSave(data, slotTemplate);
-            }
-        }
-
-        // 3) Colocar jugador
-        var player = FindFirstObjectByType<PlayerState>()?.gameObject;
-        if (player)
-        {
-            TeleportService.PlaceAtAnchor(player, anchorId, immediate: true);
+            Debug.Log("[WorldBootstrap] Save cargado correctamente");
         }
         else
         {
-            Debug.LogWarning("[WorldBootstrap] No se encontró PlayerState en la escena.");
+            Debug.Log("[WorldBootstrap] Sin save disponible, usando configuración por defecto");
+        }
+
+        // 3) Colocar jugador
+        SpawnManager.SetCurrentAnchor(anchorId);
+        var player = GameObject.FindWithTag("Player");
+        if (player) 
+        {
+            TeleportService.PlaceAtAnchor(player, anchorId, immediate: true);
+            Debug.Log($"[WorldBootstrap] Jugador colocado en anchor: {anchorId}");
+        }
+        else
+        {
+            Debug.LogWarning("[WorldBootstrap] No se encontró el jugador con tag 'Player'");
         }
     }
 }

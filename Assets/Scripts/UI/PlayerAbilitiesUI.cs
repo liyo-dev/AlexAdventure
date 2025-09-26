@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using TMPro;
 
 /// <summary>
 /// Gestor de UI para mostrar habilidades y hechizos desbloqueados del jugador
-/// Se conecta automáticamente con PlayerState para reflejar cambios
+/// Se conecta automáticamente con GameBootProfile para reflejar cambios
 /// </summary>
 public class PlayerAbilitiesUI : MonoBehaviour
 {
@@ -23,248 +22,201 @@ public class PlayerAbilitiesUI : MonoBehaviour
     
     [Header("Configuración")]
     [SerializeField] private bool autoRefresh = true;
-    [SerializeField] private bool showDebugInfo = false;
+    [SerializeField] private bool showDebugInfo; // default false implícito
+    [SerializeField] private float refreshInterval = 1f;
     
-    private PlayerState _playerState;
     private ManaPool _manaPool;
     
     // Cache para optimización
     private readonly List<GameObject> _abilityUIObjects = new();
     private readonly List<GameObject> _spellUIObjects = new();
+
+    // Evita inicializar dos veces si el evento llega más de una vez
+    private bool _initialized;
     
-    void Start()
+    // Reemplazamos Start/Coroutine por esperar al evento del boot service
+    void OnEnable()
     {
-        FindPlayerComponents();
-        
-        if (_playerState != null)
+        GameBootService.OnProfileReady += HandleProfileReady;
+        if (GameBootService.IsAvailable)
         {
-            // Suscribirse a cambios
-            _playerState.OnAbilitiesChanged += RefreshAbilities;
-            _playerState.OnSpellsChanged += RefreshSpells;
-            _playerState.OnStatsChanged += RefreshStats;
-            
-            // Inicializar UI
-            RefreshAll();
+            HandleProfileReady();
         }
     }
-    
-    void OnDestroy()
+
+    void OnDisable()
     {
-        if (_playerState != null)
+        GameBootService.OnProfileReady -= HandleProfileReady;
+        if (autoRefresh)
         {
-            _playerState.OnAbilitiesChanged -= RefreshAbilities;
-            _playerState.OnSpellsChanged -= RefreshSpells;
-            _playerState.OnStatsChanged -= RefreshStats;
+            CancelInvoke(nameof(RefreshAll));
         }
+    }
+
+    private void HandleProfileReady()
+    {
+        if (_initialized) return;
+
+        FindPlayerComponents();
+        RefreshAll();
+        
+        if (autoRefresh)
+        {
+            InvokeRepeating(nameof(RefreshAll), refreshInterval, refreshInterval);
+        }
+
+        _initialized = true;
+        GameBootService.OnProfileReady -= HandleProfileReady;
     }
     
     private void FindPlayerComponents()
     {
-        // Buscar PlayerState
+        // Buscar ManaPool del jugador
         var player = GameObject.FindGameObjectWithTag("Player");
         if (player != null)
         {
-            _playerState = player.GetComponent<PlayerState>();
             _manaPool = player.GetComponent<ManaPool>();
         }
         
-        if (_playerState == null)
+        if (_manaPool == null)
         {
-            _playerState = FindObjectOfType<PlayerState>();
-            if (_playerState != null)
-            {
-                _manaPool = _playerState.GetComponent<ManaPool>();
-            }
+            _manaPool = FindAnyObjectByType<ManaPool>();
         }
         
-        if (_playerState == null)
+        if (_manaPool == null && showDebugInfo)
         {
-            Debug.LogWarning("[PlayerAbilitiesUI] No se encontró PlayerState en la escena");
+            Debug.LogWarning("[PlayerAbilitiesUI] No se encontró ManaPool en la escena");
         }
     }
     
     public void RefreshAll()
     {
-        RefreshAbilities();
-        RefreshSpells();
-        RefreshStats();
+        var bootProfile = GameBootService.Profile;
+        if (bootProfile == null) return;
+        
+        var preset = bootProfile.GetActivePresetResolved();
+        if (preset == null) return;
+        
+        RefreshAbilities(preset);
+        RefreshSpells(preset);
+        RefreshStats(preset);
     }
     
-    private void RefreshAbilities()
+    private void RefreshAbilities(PlayerPresetSO preset)
     {
-        if (_playerState == null || abilitiesContainer == null) return;
+        if (abilitiesContainer == null || abilityUIPrefab == null) return;
         
         // Limpiar UI existente
-        ClearUIObjects(_abilityUIObjects);
-        
-        // Crear UI para cada habilidad desbloqueada
-        var unlockedAbilities = _playerState.GetUnlockedAbilities();
-        foreach (var abilityId in unlockedAbilities)
+        foreach (var obj in _abilityUIObjects)
         {
-            CreateAbilityUI(abilityId);
+            if (obj != null) DestroyImmediate(obj);
+        }
+        _abilityUIObjects.Clear();
+        
+        // Crear UI para habilidades desbloqueadas
+        if (preset.unlockedAbilities != null)
+        {
+            foreach (var abilityId in preset.unlockedAbilities)
+            {
+                var uiObject = Instantiate(abilityUIPrefab, abilitiesContainer);
+                
+                // Configurar el objeto UI (asume que tiene TextMeshProUGUI o similar)
+                var text = uiObject.GetComponentInChildren<TextMeshProUGUI>();
+                if (text != null)
+                {
+                    text.text = abilityId.ToString();
+                }
+                
+                _abilityUIObjects.Add(uiObject);
+            }
         }
         
         if (showDebugInfo)
         {
-            Debug.Log($"[PlayerAbilitiesUI] Actualizadas {unlockedAbilities.Count} habilidades");
+            Debug.Log($"[PlayerAbilitiesUI] Abilities refreshed: {preset.unlockedAbilities?.Count ?? 0} abilities");
         }
     }
     
-    private void RefreshSpells()
+    private void RefreshSpells(PlayerPresetSO preset)
     {
-        if (_playerState == null || spellsContainer == null) return;
+        if (spellsContainer == null || spellUIPrefab == null) return;
         
         // Limpiar UI existente
-        ClearUIObjects(_spellUIObjects);
-        
-        // Crear UI para cada hechizo desbloqueado
-        var unlockedSpells = _playerState.GetUnlockedSpells();
-        foreach (var spellId in unlockedSpells)
+        foreach (var obj in _spellUIObjects)
         {
-            CreateSpellUI(spellId);
+            if (obj != null) DestroyImmediate(obj);
+        }
+        _spellUIObjects.Clear();
+        
+        // Crear UI para hechizos desbloqueados
+        if (preset.unlockedSpells != null)
+        {
+            foreach (var spellId in preset.unlockedSpells)
+            {
+                var uiObject = Instantiate(spellUIPrefab, spellsContainer);
+                
+                // Configurar el objeto UI
+                var text = uiObject.GetComponentInChildren<TextMeshProUGUI>();
+                if (text != null)
+                {
+                    text.text = spellId.ToString();
+                }
+                
+                _spellUIObjects.Add(uiObject);
+            }
         }
         
         if (showDebugInfo)
         {
-            Debug.Log($"[PlayerAbilitiesUI] Actualizados {unlockedSpells.Count} hechizos");
+            Debug.Log($"[PlayerAbilitiesUI] Spells refreshed: {preset.unlockedSpells?.Count ?? 0} spells");
         }
     }
     
-    private void RefreshStats()
+    private void RefreshStats(PlayerPresetSO preset)
     {
-        if (_playerState == null) return;
-        
         // Actualizar nivel
         if (levelText != null)
         {
-            levelText.text = $"Nivel {_playerState.Level}";
+            levelText.text = $"Nivel: {preset.level}";
         }
         
         // Actualizar maná
         if (manaText != null)
         {
-            if (_playerState.MaxMp > 0)
+            if (_manaPool != null)
             {
-                manaText.text = $"Maná: {_playerState.CurrentMp:0}/{_playerState.MaxMp:0}";
+                manaText.text = $"Maná: {_manaPool.Current:0}/{_manaPool.Max:0}";
             }
             else
             {
-                manaText.text = "Sin maná";
+                manaText.text = $"Maná: {preset.currentMP:0}/{preset.maxMP:0}";
             }
         }
     }
     
-    private void CreateAbilityUI(AbilityId abilityId)
+    // Métodos públicos para refrescar componentes individuales
+    public void RefreshAbilities()
     {
-        if (abilityUIPrefab == null || abilitiesContainer == null) return;
-        
-        var uiObject = Instantiate(abilityUIPrefab, abilitiesContainer);
-        _abilityUIObjects.Add(uiObject);
-        
-        // Configurar el UI del ability (esto dependerá de tu prefab)
-        var abilityUI = uiObject.GetComponent<AbilityUIElement>();
-        if (abilityUI != null)
-        {
-            abilityUI.SetAbility(abilityId);
-        }
-        else
-        {
-            // Fallback: configurar con componentes básicos
-            var text = uiObject.GetComponentInChildren<TextMeshProUGUI>();
-            if (text != null)
-            {
-                text.text = abilityId.ToString();
-            }
-        }
+        var preset = GameBootService.Profile?.GetActivePresetResolved();
+        if (preset != null) RefreshAbilities(preset);
     }
     
-    private void CreateSpellUI(SpellId spellId)
+    public void RefreshSpells()
     {
-        if (spellUIPrefab == null || spellsContainer == null) return;
-        
-        var uiObject = Instantiate(spellUIPrefab, spellsContainer);
-        _spellUIObjects.Add(uiObject);
-        
-        // Configurar el UI del spell (esto dependerá de tu prefab)
-        var spellUI = uiObject.GetComponent<SpellUIElement>();
-        if (spellUI != null)
-        {
-            spellUI.SetSpell(spellId);
-        }
-        else
-        {
-            // Fallback: configurar con componentes básicos
-            var text = uiObject.GetComponentInChildren<TextMeshProUGUI>();
-            if (text != null)
-            {
-                text.text = spellId.ToString();
-            }
-        }
+        var preset = GameBootService.Profile?.GetActivePresetResolved();
+        if (preset != null) RefreshSpells(preset);
     }
     
-    private void ClearUIObjects(List<GameObject> objects)
+    public void RefreshStats()
     {
-        foreach (var obj in objects)
-        {
-            if (obj != null)
-            {
-                DestroyImmediate(obj);
-            }
-        }
-        objects.Clear();
+        var preset = GameBootService.Profile?.GetActivePresetResolved();
+        if (preset != null) RefreshStats(preset);
     }
     
-    // Métodos públicos para uso externo
-    public void ForceRefresh()
+    // Método para debugging
+    [ContextMenu("Refresh All (Debug)")]
+    private void DebugRefresh()
     {
         RefreshAll();
-    }
-    
-    public int GetAbilitiesCount()
-    {
-        return _playerState != null ? _playerState.GetUnlockedAbilities().Count : 0;
-    }
-    
-    public int GetSpellsCount()
-    {
-        return _playerState != null ? _playerState.GetUnlockedSpells().Count : 0;
-    }
-}
-
-// Interfaces para los elementos UI (para futura implementación)
-public interface IAbilityUIElement
-{
-    void SetAbility(AbilityId abilityId);
-}
-
-public interface ISpellUIElement
-{
-    void SetSpell(SpellId spellId);
-}
-
-// Componentes base para elementos UI (opcional)
-public class AbilityUIElement : MonoBehaviour, IAbilityUIElement
-{
-    public void SetAbility(AbilityId abilityId)
-    {
-        // Implementar según necesidades específicas
-        var text = GetComponentInChildren<TextMeshProUGUI>();
-        if (text != null)
-        {
-            text.text = abilityId.ToString();
-        }
-    }
-}
-
-public class SpellUIElement : MonoBehaviour, ISpellUIElement
-{
-    public void SetSpell(SpellId spellId)
-    {
-        // Implementar según necesidades específicas
-        var text = GetComponentInChildren<TextMeshProUGUI>();
-        if (text != null)
-        {
-            text.text = spellId.ToString();
-        }
     }
 }

@@ -9,6 +9,37 @@ public class SpawnManager : MonoBehaviour
     // Evento opcional para quien quiera reaccionar a cambios de anchor (HUD, etc.)
     public static event Action<string> OnAnchorChanged;
 
+    private bool _initialized;
+
+    void OnEnable()
+    {
+        GameBootService.OnProfileReady += HandleProfileReady;
+        if (GameBootService.IsAvailable)
+        {
+            HandleProfileReady();
+        }
+    }
+
+    void OnDisable()
+    {
+        GameBootService.OnProfileReady -= HandleProfileReady;
+    }
+
+    private void HandleProfileReady()
+    {
+        if (_initialized) return;
+
+        // Inicializar con el anchor por defecto del profile
+        var bootProfile = GameBootService.Profile;
+        if (bootProfile != null && !string.IsNullOrEmpty(bootProfile.defaultAnchorId))
+        {
+            SetCurrentAnchor(bootProfile.defaultAnchorId);
+        }
+
+        _initialized = true;
+        GameBootService.OnProfileReady -= HandleProfileReady;
+    }
+
     /// <summary>Establece el anchor actual (no mueve al jugador).</summary>
     public static void SetCurrentAnchor(string id)
     {

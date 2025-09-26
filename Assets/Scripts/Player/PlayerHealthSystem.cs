@@ -4,15 +4,15 @@ using UnityEngine;
 using UnityEngine.Events;
 
 /// <summary>
-/// Sistema de salud específico para el jugador que se integra con PlayerState
+/// Sistema de salud específico para el jugador que se integra con GameBootProfile
 /// </summary>
-[RequireComponent(typeof(PlayerState), typeof(Animator))]
+[RequireComponent(typeof(Animator))]
 public class PlayerHealthSystem : MonoBehaviour
 {
     [Header("Configuración de Daño")]
     [SerializeField] private float invulnerabilityDuration = 1f;
     [Tooltip("Si está activo, el jugador no puede morir (útil para testing)")]
-    [SerializeField] private bool godMode = false;
+    [SerializeField] private bool godMode; // por defecto false
     
     [Header("Animaciones")]
     [SerializeField] private string damageAnimationName = "TakeDamage";
@@ -53,27 +53,31 @@ public class PlayerHealthSystem : MonoBehaviour
     public UnityEvent OnPlayerRevived;
     
     // Componentes
-    private PlayerState _playerState;
     private Animator _animator;
     private AudioSource _audioSource;
     private Renderer[] _renderers;
     private Material[] _originalMaterials;
     
-    // Estado
+    // Estado local del sistema de salud
+    private float _currentHp;
+    private float _maxHp;
     private bool _isInvulnerable = false;
-    private bool _isDead = false;
+    private bool _isDead; // por defecto false
     private float _invulnerableUntil = -999f;
+
+    // Evitar doble inicialización
+    private bool _initialized;
     
     // Corrutinas
     private Coroutine _invulnerabilityFlashCoroutine;
     private Coroutine _damageFlashCoroutine;
     
-    // Propiedades públicas
-    public bool IsAlive => _playerState.CurrentHp > 0 && !_isDead;
+    // Propiedades públicas usando GameBootProfile
+    public bool IsAlive => _currentHp > 0 && !_isDead;
     public bool IsInvulnerable => _isInvulnerable || Time.time < _invulnerableUntil;
-    public float CurrentHealth => _playerState.CurrentHp;
-    public float MaxHealth => _playerState.MaxHp;
-    public float HealthPercentage => MaxHealth > 0 ? CurrentHealth / MaxHealth : 0f;
+    public float CurrentHealth => _currentHp;
+    public float MaxHealth => _maxHp;
+    public float HealthPercentage => _maxHp > 0 ? _currentHp / _maxHp : 0f;
     public bool IsGodModeActive => godMode;
     
     // Eventos C#
@@ -83,7 +87,6 @@ public class PlayerHealthSystem : MonoBehaviour
     
     void Awake()
     {
-        _playerState = GetComponent<PlayerState>();
         _animator = GetComponent<Animator>();
         _audioSource = GetComponent<AudioSource>();
         
@@ -98,48 +101,52 @@ public class PlayerHealthSystem : MonoBehaviour
         _renderers = GetComponentsInChildren<Renderer>();
         CacheOriginalMaterials();
     }
-    
-    void Start()
+
+    // Reemplaza Start/Coroutine por evento del boot service
+    void OnEnable()
     {
-        // Usar StartCoroutine para esperar un frame y asegurar que PlayerState se haya inicializado
-        StartCoroutine(DelayedInitialization());
-    }
-    
-    private IEnumerator DelayedInitialization()
-    {
-        // Esperar hasta el final del frame para asegurar que todos los componentes se han inicializado
-        yield return new WaitForEndOfFrame();
-        
-        // Suscribirse a cambios en PlayerState
-        if (_playerState != null)
+        GameBootService.OnProfileReady += HandleProfileReady;
+        if (GameBootService.IsAvailable)
         {
-            _playerState.OnStatsChanged += HandleStatsChanged;
+            HandleProfileReady();
+        }
+    }
+
+    void OnDisable()
+    {
+        GameBootService.OnProfileReady -= HandleProfileReady;
+    }
+
+    private void HandleProfileReady()
+    {
+        if (_initialized) return;
+
+        // Inicializar desde GameBootProfile
+        var bootProfile = GameBootService.Profile;
+        var preset = bootProfile?.GetActivePresetResolved();
+        
+        if (preset != null)
+        {
+            _maxHp = preset.maxHP;
+            _currentHp = preset.currentHP;
+            _isDead = _currentHp <= 0;
             
-            // Verificar si PlayerState tiene datos válidos, si no, esperar un poco más
-            int maxAttempts = 10;
-            int attempts = 0;
-            
-            while ((_playerState.MaxHp <= 1f || _playerState.CurrentHp <= 0f) && attempts < maxAttempts)
-            {
-                Debug.Log($"[PlayerHealthSystem] Esperando inicialización de PlayerState... Intento {attempts + 1}");
-                yield return new WaitForSeconds(0.1f);
-                attempts++;
-            }
-            
-            // Inicializar el estado basado en PlayerState actual
-            InitializeFromPlayerState();
+            Debug.Log($"[PlayerHealthSystem] Inicializado con vida: {_currentHp:0.1f}/{_maxHp:0.1f} ({HealthPercentage:P1}) - Estado: {(_isDead ? "MUERTO" : "VIVO")}");
+        }
+        else
+        {
+            Debug.LogWarning("[PlayerHealthSystem] No se encontró preset válido, usando valores por defecto");
+            _maxHp = 100f;
+            _currentHp = 100f;
+            _isDead = false;
         }
         
         // Notificar UI inicial después de la inicialización
         UpdateUI();
-    }
-    
-    void OnDestroy()
-    {
-        if (_playerState != null)
-        {
-            _playerState.OnStatsChanged -= HandleStatsChanged;
-        }
+
+        _initialized = true;
+        // No necesitamos seguir suscritos tras inicializar
+        GameBootService.OnProfileReady -= HandleProfileReady;
     }
     
     private void CacheOriginalMaterials()
@@ -160,36 +167,6 @@ public class PlayerHealthSystem : MonoBehaviour
         Debug.Log($"[PlayerHealthSystem] Materiales originales cacheados para {_originalMaterials.Length} renderers");
     }
     
-    private void InitializeFromPlayerState()
-    {
-        if (_playerState == null) return;
-        
-        // Establecer el estado inicial basado en PlayerState SIN disparar eventos de cambio
-        _isDead = _playerState.CurrentHp <= 0;
-        
-        Debug.Log($"[PlayerHealthSystem] Inicializado con vida: {_playerState.CurrentHp:0.1f}/{_playerState.MaxHp:0.1f} ({HealthPercentage:P1}) - Estado: {(_isDead ? "MUERTO" : "VIVO")}");
-    }
-    
-    private void HandleStatsChanged()
-    {
-        if (_playerState == null) return;
-        
-        // Solo procesar cambios de muerte/vida si realmente cambió el estado
-        bool shouldBeDead = _playerState.CurrentHp <= 0;
-        
-        // IMPORTANTE: Solo disparar eventos si hay un cambio REAL de estado
-        if (shouldBeDead && !_isDead)
-        {
-            Die();
-        }
-        else if (!shouldBeDead && _isDead)
-        {
-            Revive();
-        }
-        
-        UpdateUI();
-    }
-    
     /// <summary>
     /// Aplica daño al jugador
     /// </summary>
@@ -198,32 +175,39 @@ public class PlayerHealthSystem : MonoBehaviour
         if (!IsAlive || damageAmount <= 0f || godMode) return false;
         if (IsInvulnerable) return false;
         
-        float oldHealth = _playerState.CurrentHp;
-        float newHealth = Mathf.Max(0f, oldHealth - damageAmount);
+        float oldHealth = _currentHp;
+        _currentHp = Mathf.Max(0f, oldHealth - damageAmount);
         
-        // Aplicar el daño al PlayerState
-        _playerState.SetHealth(newHealth);
+        // Actualizar también el GameBootProfile si es necesario
+        UpdateGameBootProfile();
         
         // Activar invulnerabilidad
         StartInvulnerability();
         
-        // IMPORTANTE: Ejecutar animación INMEDIATAMENTE, antes que otros efectos
+        // IMPORTANTE: Ejecutar animación INMEDIATAMENTE
         TriggerAnimation(damageAnimationName);
         
-        // Efectos visuales y sonoros (inmediatos)
+        // Efectos visuales y sonoros
         PlayDamageEffects();
         
-        // Aplicar knockback DESPUÉS de la animación (con un pequeño delay)
+        // Aplicar knockback DESPUÉS de la animación
         if (enableKnockback)
         {
             StartCoroutine(DelayedKnockback());
         }
         
-        // Notificar eventos
-        OnDamageTaken?.Invoke(damageAmount, newHealth);
-        OnDamageReceived?.Invoke(damageAmount);
+        // Verificar muerte
+        if (_currentHp <= 0 && !_isDead)
+        {
+            Die();
+        }
         
-        Debug.Log($"[PlayerHealth] Jugador recibió {damageAmount} daño. Vida: {newHealth}/{MaxHealth}");
+        // Notificar eventos
+        OnDamageTaken?.Invoke(damageAmount, _currentHp);
+        OnDamageReceived?.Invoke(damageAmount);
+        UpdateUI();
+        
+        Debug.Log($"[PlayerHealth] Jugador recibió {damageAmount} daño. Vida: {_currentHp}/{_maxHp}");
         
         return true;
     }
@@ -241,28 +225,35 @@ public class PlayerHealthSystem : MonoBehaviour
     public bool Heal(float healAmount)
     {
         if (healAmount <= 0f) return false;
-        if (_playerState.CurrentHp >= _playerState.MaxHp) return false;
+        if (_currentHp >= _maxHp) return false;
         
-        float oldHealth = _playerState.CurrentHp;
-        float newHealth = Mathf.Min(_playerState.MaxHp, oldHealth + healAmount);
-        float actualHeal = newHealth - oldHealth;
+        float oldHealth = _currentHp;
+        _currentHp = Mathf.Min(_maxHp, oldHealth + healAmount);
+        float actualHeal = _currentHp - oldHealth;
         
         if (actualHeal <= 0f) return false;
         
-        // Aplicar curación (esto activará HandleStatsChanged que detectará si revivió)
-        _playerState.SetHealth(newHealth);
+        // Actualizar GameBootProfile
+        UpdateGameBootProfile();
         
-        // Efectos solo si el jugador está vivo DESPUÉS de la curación
-        if (_playerState.CurrentHp > 0)
+        // Verificar revivir
+        if (_isDead && _currentHp > 0)
+        {
+            ReviveInternal();
+        }
+        
+        // Efectos solo si el jugador está vivo
+        if (_currentHp > 0)
         {
             PlayHealEffects();
             TriggerAnimation(healAnimationName);
         }
         
-        // Notificar eventos siempre
-        OnHealed?.Invoke(actualHeal, newHealth);
+        // Notificar eventos
+        OnHealed?.Invoke(actualHeal, _currentHp);
+        UpdateUI();
         
-        Debug.Log($"[PlayerHealth] Jugador curado {actualHeal}. Vida: {newHealth}/{MaxHealth} - Estado: {(newHealth > 0 ? "VIVO" : "MUERTO")}");
+        Debug.Log($"[PlayerHealth] Jugador curado {actualHeal}. Vida: {_currentHp}/{_maxHp} - Estado: {(_currentHp > 0 ? "VIVO" : "MUERTO")}");
         
         return true;
     }
@@ -274,8 +265,15 @@ public class PlayerHealthSystem : MonoBehaviour
     {
         if (!IsAlive || godMode) return;
         
-        _playerState.SetHealth(0f);
-        // HandleStatsChanged se encargará de llamar Die()
+        _currentHp = 0f;
+        UpdateGameBootProfile();
+        
+        if (!_isDead)
+        {
+            Die();
+        }
+        
+        UpdateUI();
     }
     
     /// <summary>
@@ -284,10 +282,71 @@ public class PlayerHealthSystem : MonoBehaviour
     public void Revive(float healthPercentage = 1f)
     {
         healthPercentage = Mathf.Clamp01(healthPercentage);
-        float newHealth = _playerState.MaxHp * healthPercentage;
+        _currentHp = _maxHp * healthPercentage;
         
-        _playerState.SetHealth(newHealth);
-        // HandleStatsChanged se encargará de llamar Revive()
+        UpdateGameBootProfile();
+        
+        if (_isDead && _currentHp > 0)
+        {
+            ReviveInternal();
+        }
+        
+        UpdateUI();
+    }
+    
+    /// <summary>
+    /// Actualiza el GameBootProfile con los valores actuales de salud
+    /// </summary>
+    private void UpdateGameBootProfile()
+    {
+        var bootProfile = GameBootService.Profile;
+        if (bootProfile != null)
+        {
+            var preset = bootProfile.GetActivePresetResolved();
+            if (preset != null)
+            {
+                preset.currentHP = _currentHp;
+                preset.maxHP = _maxHp;
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Establece la salud máxima y actualiza la actual proporcionalmente
+    /// </summary>
+    public void SetMaxHealth(float newMaxHp)
+    {
+        if (newMaxHp <= 0) return;
+        
+        float healthRatio = _maxHp > 0 ? _currentHp / _maxHp : 1f;
+        _maxHp = newMaxHp;
+        _currentHp = _maxHp * healthRatio;
+        
+        UpdateGameBootProfile();
+        UpdateUI();
+    }
+    
+    /// <summary>
+    /// Establece la salud actual directamente
+    /// </summary>
+    public void SetCurrentHealth(float newCurrentHp)
+    {
+        _currentHp = Mathf.Clamp(newCurrentHp, 0f, _maxHp);
+        
+        bool wasDead = _isDead;
+        bool shouldBeDead = _currentHp <= 0;
+        
+        if (!wasDead && shouldBeDead)
+        {
+            Die();
+        }
+        else if (wasDead && !shouldBeDead)
+        {
+            ReviveInternal();
+        }
+        
+        UpdateGameBootProfile();
+        UpdateUI();
     }
     
     private void Die()
@@ -307,7 +366,7 @@ public class PlayerHealthSystem : MonoBehaviour
         Debug.Log("[PlayerHealth] ¡El jugador ha muerto!");
     }
     
-    private void Revive()
+    private void ReviveInternal()
     {
         if (!_isDead) return;
         
@@ -397,10 +456,10 @@ public class PlayerHealthSystem : MonoBehaviour
     {
         if (_renderers == null) return;
         
-        foreach (var renderer in _renderers)
+        foreach (var rend in _renderers)
         {
-            if (renderer != null)
-                renderer.enabled = visible;
+            if (rend != null)
+                rend.enabled = visible;
         }
     }
     
@@ -502,10 +561,10 @@ public class PlayerHealthSystem : MonoBehaviour
     }
     
     // Métodos públicos para configuración
-    public void SetGodMode(bool enabled)
+    public void SetGodMode(bool isEnabled)
     {
-        godMode = enabled;
-        Debug.Log($"[PlayerHealth] God Mode: {(enabled ? "ACTIVADO" : "DESACTIVADO")}");
+        godMode = isEnabled;
+        Debug.Log($"[PlayerHealth] God Mode: {(isEnabled ? "ACTIVADO" : "DESACTIVADO")}");
     }
     
     public void SetInvulnerabilityDuration(float duration)

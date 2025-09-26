@@ -6,19 +6,67 @@ public class AnchorSetter : MonoBehaviour
     public string anchorId;
     public bool saveAfter = true;
 
+    private bool _pendingSet;
+
     void Reset(){ GetComponent<Collider>().isTrigger = true; }
+
+    void OnEnable()
+    {
+        GameBootService.OnProfileReady += HandleProfileReady;
+    }
+
+    void OnDisable()
+    {
+        GameBootService.OnProfileReady -= HandleProfileReady;
+    }
+
+    private void HandleProfileReady()
+    {
+        if (_pendingSet)
+        {
+            ApplyAnchorAndMaybeSave();
+            _pendingSet = false;
+        }
+    }
 
     void OnTriggerEnter(Collider other)
     {
         if (!other.CompareTag("Player")) return;
-        SpawnManager.SetCurrentAnchor(anchorId);
 
-        if (saveAfter)
+        if (GameBootService.IsAvailable)
         {
-            var ps = other.GetComponent<PlayerState>() ?? other.GetComponentInParent<PlayerState>();
-            var save = FindFirstObjectByType<SaveSystem>();
-            if (ps && save) save.Save(PlayerSaveData.From(ps));
+            ApplyAnchorAndMaybeSave();
         }
+        else
+        {
+            // Diferir hasta que el GameBootProfile esté listo
+            _pendingSet = true;
+        }
+    }
 
+    private void ApplyAnchorAndMaybeSave()
+    {
+        if (string.IsNullOrEmpty(anchorId)) return;
+
+        SpawnManager.SetCurrentAnchor(anchorId);
+        Debug.Log($"[AnchorSetter] Anchor establecido a: {anchorId}");
+
+        if (!saveAfter) return;
+        if (!GameBootService.IsAvailable) return;
+
+        // Guardar estado actualizando el lastSpawnAnchorId
+        var data = PlayerSaveData.FromGameBootProfile();
+        data.lastSpawnAnchorId = anchorId;
+
+        var saveSystem = FindFirstObjectByType<SaveSystem>();
+        if (saveSystem != null)
+        {
+            saveSystem.Save(data);
+            Debug.Log("[AnchorSetter] Partida guardada tras cambiar de anchor");
+        }
+        else
+        {
+            Debug.LogWarning("[AnchorSetter] No se encontró SaveSystem para guardar");
+        }
     }
 }

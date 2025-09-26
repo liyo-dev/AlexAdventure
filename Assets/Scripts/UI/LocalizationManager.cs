@@ -8,7 +8,7 @@ public class LocalizationManager : MonoBehaviour
     public static LocalizationManager Instance { get; private set; }
 
     [SerializeField] private string defaultLocale = "es";
-    [SerializeField] private string[] catalogs = { "prologue", "ui" };
+    [SerializeField] private string[] catalogs = { "prologue", "ui", "cinematicintro" };
 
     private readonly Dictionary<string, string> _table = new Dictionary<string, string>(1024);
     private readonly Dictionary<string, SubtitleInfo> _subs = new Dictionary<string, SubtitleInfo>(64);
@@ -49,58 +49,79 @@ public class LocalizationManager : MonoBehaviour
                 Debug.LogWarning($"[Localization] Missing catalog: {path}. Falling back to default.");
                 var fallback = Resources.Load<TextAsset>($"Localization/{cat}_{defaultLocale}");
                 if (fallback != null) MergeJsonIntoTables(fallback.text);
-                continue;
             }
-            MergeJsonIntoTables(textAsset.text);
+            else
+            {
+                MergeJsonIntoTables(textAsset.text);
+            }
         }
 
         PlayerPrefs.SetString("locale", locale);
-        PlayerPrefs.Save();
         OnLocaleChanged?.Invoke();
-    }
-
-    public string Get(string key, string fallback = "")
-    {
-        if (string.IsNullOrEmpty(key)) return fallback;
-        return _table.TryGetValue(key, out var v) ? v : (string.IsNullOrEmpty(fallback) ? key : fallback);
-    }
-
-    public bool TryGetSubtitleInfo(string id, out SubtitleInfo info)
-    {
-        return _subs.TryGetValue(id, out info);
     }
 
     private void MergeJsonIntoTables(string json)
     {
-        var root = JsonUtility.FromJson<LocalizationRoot>(json);
-        if (root == null) return;
+        try
+        {
+            var data = JsonUtility.FromJson<LocalizationData>(json);
+            
+            // Manejar formato "texts" (UI general)
+            if (data.texts != null)
+                foreach (var entry in data.texts)
+                    _table[entry.key] = entry.value;
 
-        if (root.strings != null)
-        {
-            foreach (var kv in root.strings)
-                _table[kv.key] = kv.value;
+            // Manejar formato "subtitles" (cinemáticas)
+            if (data.subtitles != null)
+                foreach (var entry in data.subtitles)
+                    _table[entry.id] = entry.text;
+
+            // Manejar subtítulos con timing (si existen)
+            if (data.timedSubtitles != null)
+                foreach (var entry in data.timedSubtitles)
+                    _subs[entry.id] = entry;
         }
-        if (root.subtitles != null)
+        catch (Exception e)
         {
-            foreach (var s in root.subtitles)
-            {
-                _table[s.id] = s.text;
-                _subs[s.id] = new SubtitleInfo { id = s.id, start = s.start, duration = s.duration };
-            }
+            Debug.LogError($"[Localization] Error parsing JSON: {e.Message}");
         }
     }
 
-    [Serializable] private class LocalizationRoot
+    public string Get(string key, string fallback = "")
     {
-        public SubtitleEntry[] subtitles;
-        public StringKV[] strings;
+        return _table.TryGetValue(key, out var value) ? value : fallback;
     }
-    [Serializable] private class SubtitleEntry
+
+    public SubtitleInfo GetSubtitle(string id)
+    {
+        return _subs.TryGetValue(id, out var info) ? info : null;
+    }
+
+    public void ChangeLanguage(string newLocale)
+    {
+        if (CurrentLocale != newLocale)
+            LoadLocale(newLocale);
+    }
+
+    [Serializable]
+    private class LocalizationData
+    {
+        public TextEntry[] texts;           // Para UI general
+        public SubtitleEntry[] subtitles;   // Para cinemáticas (tu formato)
+        public SubtitleInfo[] timedSubtitles; // Para subtítulos con timing
+    }
+
+    [Serializable]
+    private class TextEntry
+    {
+        public string key;
+        public string value;
+    }
+
+    [Serializable]
+    private class SubtitleEntry
     {
         public string id;
         public string text;
-        public float start;
-        public float duration;
     }
-    [Serializable] private class StringKV { public string key; public string value; }
 }
