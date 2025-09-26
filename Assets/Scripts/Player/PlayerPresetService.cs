@@ -63,6 +63,11 @@ public class PlayerPresetService : MonoBehaviour
             return; 
         }
 
+        // Log inicial de diagnóstico
+        var entriesCount = spellLibrary.Entries != null ? spellLibrary.Entries.Count : -1;
+        int unlockedCount = preset.unlockedSpells != null ? preset.unlockedSpells.Count : 0;
+        Debug.Log($"[PlayerPresetService] SpellLibrary entries: {entriesCount} | Unlocked: {unlockedCount} | Slots IDs → L:{preset.leftSpellId} R:{preset.rightSpellId} S:{preset.specialSpellId}");
+
         // USAR EL ANCHOR DEL PRESET SO
         if (!string.IsNullOrEmpty(preset.spawnAnchorId))
         {
@@ -80,20 +85,28 @@ public class PlayerPresetService : MonoBehaviour
         var rightId = preset.rightSpellId;
         var specialId = preset.specialSpellId;
 
+        // Fallback: si no hay ningún slot asignado pero sí hay desbloqueados, autocompletamos aunque la opción esté desactivada
+        bool allNone = leftId == SpellId.None && rightId == SpellId.None && specialId == SpellId.None;
+        bool hasUnlocked = preset.unlockedSpells != null && preset.unlockedSpells.Count > 0;
+
         var left = leftId == SpellId.None ? null : spellLibrary.Get(leftId);
         var right = rightId == SpellId.None ? null : spellLibrary.Get(rightId);
         var special = specialId == SpellId.None ? null : spellLibrary.Get(specialId);
 
+        if (leftId != SpellId.None && left == null) Debug.LogWarning($"[PlayerPresetService] Left ID {leftId} no está en SpellLibrary");
+        if (rightId != SpellId.None && right == null) Debug.LogWarning($"[PlayerPresetService] Right ID {rightId} no está en SpellLibrary");
+        if (specialId != SpellId.None && special == null) Debug.LogWarning($"[PlayerPresetService] Special ID {specialId} no está en SpellLibrary");
+
         // Validar tipos de slot
-        if (left && left.slotType == SpellSlotType.SpecialOnly) left = null;
-        if (right && right.slotType == SpellSlotType.SpecialOnly) right = null;
-        if (special && special.slotType != SpellSlotType.SpecialOnly) special = null;
+        if (left && left.slotType == SpellSlotType.SpecialOnly) { Debug.LogWarning("[PlayerPresetService] Left es SpecialOnly, se descarta"); left = null; }
+        if (right && right.slotType == SpellSlotType.SpecialOnly) { Debug.LogWarning("[PlayerPresetService] Right es SpecialOnly, se descarta"); right = null; }
+        if (special && special.slotType != SpellSlotType.SpecialOnly) { Debug.LogWarning("[PlayerPresetService] Special no es SpecialOnly, se descarta"); special = null; }
 
         // Evitar duplicados en slots izq/der
-        if (left && right && leftId == rightId) right = null;
+        if (left && right && leftId == rightId) { Debug.LogWarning("[PlayerPresetService] Left y Right tienen el mismo ID, se borra Right"); right = null; }
 
-        // Auto-completar slots vacíos (opcional)
-        if (autoFillEmptySlotsFromUnlocked && preset.unlockedSpells != null)
+        // Auto-completar slots vacíos (opcional o por fallback si todos estaban None)
+        if ((autoFillEmptySlotsFromUnlocked || allNone) && preset.unlockedSpells != null)
         {
             MagicSpellSO FindFirstAvailable(bool requireSpecial, SpellId avoid)
             {

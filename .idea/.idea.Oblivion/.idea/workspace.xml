@@ -5,63 +5,24 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9eabfba9-47fb-4d93-81a2-90082062f2b7" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Assets/Scripts/Core/GameBootService.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Scripts/Core/GameBootService.cs.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Scripts/Core/WaitForGameBootService.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Scripts/Core/WaitForGameBootService.cs.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Scripts/Player/PlayerWaterFloat.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Scripts/Player/PlayerWaterFloat.cs.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Scripts/UI/LocalizationTester.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Scripts/UI/LocalizationTester.cs.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Scripts/UI/LocalizedMessage.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Scripts/UI/LocalizedMessage.cs.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Scripts/UI/LocalizedUI.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Scripts/UI/LocalizedUI.cs.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SISTEMA_JUEGO.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.Oblivion/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Oblivion/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Assets/Editor/FindUnusedScripts.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Assets/Editor/FindUnusedScripts.cs.meta" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Assets/Scripts/World/AnchorRegistry.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Assets/Scripts/World/AnchorRegistry.cs.meta" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.Oblivion/.idea/copilotDiffState.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Oblivion/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Oblivion/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Fonts/Nunito-SemiBold SDF.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Fonts/Nunito-SemiBold SDF.asset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Resources/Localization/prologue_en.json" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Resources/Localization/prologue_en.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Resources/Localization/prologue_en.json.meta" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Resources/Localization/prologue_en.json.meta" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Resources/Localization/prologue_es.json" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Resources/Localization/prologue_es.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Resources/Localization/prologue_es.json.meta" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Resources/Localization/prologue_es.json.meta" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Resources/Localization/ui_en.json" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Resources/Localization/ui_en.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Resources/Localization/ui_es.json" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Resources/Localization/ui_es.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scenes/Main World/MainWorld.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scenes/Main World/MainWorld.unity" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scenes/Systems/MainMenu.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scenes/Systems/MainMenu.unity" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scenes/Systems/Start.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scenes/Systems/Start.unity" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scripts/Core/GameBootProfile.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Core/GameBootProfile.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Core/GameBootRunner.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Core/GameBootRunner.cs.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Core/Identifiers.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Core/Identifiers.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Player/PlayerHealthSystem.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Player/PlayerHealthSystem.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Player/PlayerPresetSO.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Player/PlayerPresetSO.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Core/GameBootService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Core/GameBootService.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scripts/Player/PlayerPresetService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Player/PlayerPresetService.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scripts/Player/PlayerSaveData.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Player/PlayerSaveData.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Player/PlayerState.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Player/PlayerState.cs.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Timeline/SubtitleController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Timeline/SubtitleController.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/UI/LocalizationManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/UI/LocalizationManager.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/UI/PlayerAbilitiesUI.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/UI/PlayerAbilitiesUI.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/World/AnchorSetter.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/World/AnchorSetter.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Player/SO/PlayerPreset_Test.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Player/SO/PlayerPreset_Test.asset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scripts/World/PortalTrigger.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/World/PortalTrigger.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scripts/World/SavePoint.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/World/SavePoint.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/World/SpawnAnchor.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/World/SpawnAnchor.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scripts/World/SpawnManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/World/SpawnManager.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/World/TeleportService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/World/TeleportService.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scripts/World/WorldBootstrap.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/World/WorldBootstrap.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GeneratedAssets/45ec47be1501fee48a8d4baaf7d6b4fe/0199760d-68e6-7468-af43-46619bc144b9.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GeneratedAssets/45ec47be1501fee48a8d4baaf7d6b4fe/0199760d-68e6-7468-af43-46619bc144b9.jpg.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GeneratedAssets/45ec47be1501fee48a8d4baaf7d6b4fe/ui_dialogue_manager.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GeneratedAssets/45ec47be1501fee48a8d4baaf7d6b4fe/ui_dialogue_manager.png.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GeneratedAssets/b1bae50a86e690449a7ba8c03900f80e/01996d6e-5095-7805-9d49-272283771423.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GeneratedAssets/b1bae50a86e690449a7ba8c03900f80e/01996d6e-5095-7805-9d49-272283771423.png.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GeneratedAssets/b1bae50a86e690449a7ba8c03900f80e/Generated Image September 21, 2025 - 7_54PM.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GeneratedAssets/b1bae50a86e690449a7ba8c03900f80e/Generated Image September 21, 2025 - 7_54PM.png.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GeneratedAssets/d314f0008cfb1c7458a2d3cda877b0bc/01997615-39d5-743b-ae86-a43dd7c70e01.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GeneratedAssets/d314f0008cfb1c7458a2d3cda877b0bc/01997615-39d5-743b-ae86-a43dd7c70e01.png.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GeneratedAssets/d314f0008cfb1c7458a2d3cda877b0bc/magic_attacks_container.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GeneratedAssets/d314f0008cfb1c7458a2d3cda877b0bc/magic_attacks_container.png.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/ProjectSettings/EditorBuildSettings.asset" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectSettings/EditorBuildSettings.asset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ProjectSettings/ShaderGraphSettings.asset" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectSettings/ShaderGraphSettings.asset" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -85,6 +46,7 @@
 }</component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/Assets/Art/Enemies/CasualFantasy/_Demo.meta" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Editor/FindUnusedScripts.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Fonts/Nunito-SemiBold SDF.asset" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Plugins/IAttackHitbox.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Cinematics/AdditiveSceneCinematic.cs" root0="FORCE_HIGHLIGHTING" />
@@ -120,6 +82,7 @@
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Weapons/MagicProjectil.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Weapons/SpellLibrarySO.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/World/AnchorEnvironment.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Scripts/World/AnchorRegistry.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/World/EnvironmentController.cs" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
@@ -229,7 +192,8 @@
       <workItem from="1758540435961" duration="1387000" />
       <workItem from="1758607882941" duration="22457000" />
       <workItem from="1758814105155" duration="908000" />
-      <workItem from="1758815719133" duration="11785000" />
+      <workItem from="1758815719133" duration="16669000" />
+      <workItem from="1758878036884" duration="1919000" />
     </task>
     <task id="LOCAL-00001" summary="Add new asset metadata files for various components in the project">
       <option name="closed" value="true" />

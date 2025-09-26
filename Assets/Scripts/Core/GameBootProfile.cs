@@ -6,14 +6,12 @@ public class GameBootProfile : ScriptableObject
 {
     [Header("Arranque")]
     public string sceneToLoad = "MainWorld";
-    public string defaultAnchorId = "Bedroom";
     public PlayerPresetSO defaultPlayerPreset;
 
     [Header("Boot Settings")]
     [Tooltip("Ignora el save y aplica este preset al arrancar")]
     public bool usePresetInsteadOfSave = false;
     public PlayerPresetSO bootPreset;
-    public string startAnchorId = "Bedroom";
 
     [Header("Runtime Fallback (auto-generado al cargar save)")]
     public PlayerPresetSO runtimePreset;
@@ -21,9 +19,7 @@ public class GameBootProfile : ScriptableObject
     public bool ShouldBootFromPreset() => usePresetInsteadOfSave && bootPreset != null;
 
     public string GetStartAnchorOrDefault()
-        => string.IsNullOrEmpty(startAnchorId)
-            ? (string.IsNullOrEmpty(defaultAnchorId) ? "Bedroom" : defaultAnchorId)
-            : startAnchorId;
+        => GetActivePresetResolved()?.spawnAnchorId ?? "Bedroom";
 
     // ==== NUEVO: API para runtimePreset =======================================
     public void EnsureRuntimePreset()
@@ -32,6 +28,30 @@ public class GameBootProfile : ScriptableObject
         {
             runtimePreset = ScriptableObject.CreateInstance<PlayerPresetSO>();
             runtimePreset.name = "RuntimePlayerPreset";
+        }
+    }
+
+    private void CopyPreset(PlayerPresetSO src, PlayerPresetSO dst)
+    {
+        if (!src || !dst) return;
+        dst.spawnAnchorId = src.spawnAnchorId;
+        dst.level = src.level;
+        dst.maxHP = src.maxHP; dst.currentHP = src.currentHP;
+        dst.maxMP = src.maxMP; dst.currentMP = src.currentMP;
+        dst.unlockedAbilities = new List<AbilityId>(src.unlockedAbilities ?? new List<AbilityId>());
+        dst.unlockedSpells    = new List<SpellId>(src.unlockedSpells    ?? new List<SpellId>());
+        dst.leftSpellId = src.leftSpellId;
+        dst.rightSpellId = src.rightSpellId;
+        dst.specialSpellId = src.specialSpellId;
+        dst.flags = new List<string>(src.flags ?? new List<string>());
+    }
+
+    public void EnsureRuntimePresetFromTemplate(PlayerPresetSO template)
+    {
+        EnsureRuntimePreset();
+        if (template)
+        {
+            CopyPreset(template, runtimePreset);
         }
     }
 
@@ -48,6 +68,9 @@ public class GameBootProfile : ScriptableObject
         p.unlockedAbilities = new List<AbilityId>(data.abilities ?? new List<AbilityId>());
         p.unlockedSpells    = new List<SpellId>(data.spells    ?? new List<SpellId>());
         p.flags             = new List<string>(data.flags      ?? new List<string>());
+        // Anchor procedente del save
+        if (!string.IsNullOrEmpty(data.lastSpawnAnchorId))
+            p.spawnAnchorId = data.lastSpawnAnchorId;
 
         // Slots: si hay plantilla, respétala; si no, usa los primeros del save
         if (slotTemplate)
@@ -64,12 +87,22 @@ public class GameBootProfile : ScriptableObject
         }
     }
 
-    /// <summary>Preset activo: bootPreset (si se fuerza), si no runtimePreset, si no default.</summary>
+    /// <summary>Preset activo: siempre runtimePreset (creado desde bootPreset, save o default)</summary>
     public PlayerPresetSO GetActivePresetResolved()
     {
-        if (ShouldBootFromPreset() && bootPreset) return bootPreset;
-        if (runtimePreset)                        return runtimePreset;
-        return defaultPlayerPreset;
+        if (runtimePreset) return runtimePreset;
+        if (ShouldBootFromPreset() && bootPreset)
+        {
+            EnsureRuntimePresetFromTemplate(bootPreset);
+            return runtimePreset;
+        }
+        if (defaultPlayerPreset)
+        {
+            EnsureRuntimePresetFromTemplate(defaultPlayerPreset);
+            return runtimePreset;
+        }
+        EnsureRuntimePreset();
+        return runtimePreset;
     }
 
     // === Helpers =======================================
@@ -81,7 +114,7 @@ public class GameBootProfile : ScriptableObject
         if (!activePreset) return BuildDefaultSave();
 
         var data = new PlayerSaveData();
-        data.lastSpawnAnchorId = SpawnManager.CurrentAnchorId ?? defaultAnchorId;
+        data.lastSpawnAnchorId = SpawnManager.CurrentAnchorId ?? activePreset.spawnAnchorId ?? "Bedroom";
         data.level = activePreset.level;
         data.maxHp = activePreset.maxHP;
         data.currentHp = activePreset.currentHP;
@@ -98,21 +131,14 @@ public class GameBootProfile : ScriptableObject
     private void ApplySaveDataToProfile(PlayerSaveData data)
     {
         if (data == null) return;
-
-        // Actualizar el anchorId por defecto si es necesario
-        if (!string.IsNullOrEmpty(data.lastSpawnAnchorId))
-        {
-            defaultAnchorId = data.lastSpawnAnchorId;
-        }
-
-        // Crear/actualizar runtimePreset con los datos cargados
         SetRuntimePresetFromSave(data, defaultPlayerPreset);
     }
 
     public PlayerSaveData BuildDefaultSave()
     {
         var d = new PlayerSaveData();
-        d.lastSpawnAnchorId = string.IsNullOrEmpty(defaultAnchorId) ? "Bedroom" : defaultAnchorId;
+        var preset = defaultPlayerPreset ? defaultPlayerPreset : runtimePreset;
+        d.lastSpawnAnchorId = preset && !string.IsNullOrEmpty(preset.spawnAnchorId) ? preset.spawnAnchorId : "Bedroom";
         return d;
     }
 
@@ -158,8 +184,12 @@ public class GameBootProfile : ScriptableObject
         EnsureRuntimePreset();
         var p = runtimePreset;
 
-        // Actualizar posición actual
-        defaultAnchorId = SpawnManager.CurrentAnchorId ?? defaultAnchorId;
+        // Actualizar anchor actual en el runtime preset
+        var currentAnchor = SpawnManager.CurrentAnchorId;
+        if (!string.IsNullOrEmpty(currentAnchor))
+        {
+            p.spawnAnchorId = currentAnchor;
+        }
 
         // Obtener datos del PlayerHealthSystem si existe
         var playerHealthSystem = FindFirstObjectByType<PlayerHealthSystem>();
@@ -178,7 +208,6 @@ public class GameBootProfile : ScriptableObject
         }
 
         // Nota: Los demás datos (level, abilities, spells, flags) se mantienen del preset actual
-        // ya que no tenemos un sistema centralizado para gestionarlos sin PlayerState
-        Debug.Log($"[GameBootProfile] RuntimePreset actualizado desde sistemas actuales - HP: {p.currentHP}/{p.maxHP}, MP: {p.currentMP}/{p.maxMP}");
+        Debug.Log($"[GameBootProfile] RuntimePreset actualizado - Anchor: {p.spawnAnchorId}, HP: {p.currentHP}/{p.maxHP}, MP: {p.currentMP}/{p.maxMP}");
     }
 }

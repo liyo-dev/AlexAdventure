@@ -29,11 +29,15 @@ public class SpawnManager : MonoBehaviour
     {
         if (_initialized) return;
 
-        // Inicializar con el anchor por defecto del profile
+        // Inicializar con el anchor del preset activo
         var bootProfile = GameBootService.Profile;
-        if (bootProfile != null && !string.IsNullOrEmpty(bootProfile.defaultAnchorId))
+        if (bootProfile != null)
         {
-            SetCurrentAnchor(bootProfile.defaultAnchorId);
+            var startAnchor = bootProfile.GetStartAnchorOrDefault();
+            if (!string.IsNullOrEmpty(startAnchor))
+            {
+                SetCurrentAnchor(startAnchor);
+            }
         }
 
         _initialized = true;
@@ -47,6 +51,18 @@ public class SpawnManager : MonoBehaviour
         if (id == CurrentAnchorId) return;
 
         CurrentAnchorId = id;
+
+        // Persistir también en el runtimePreset del GameBootProfile
+        var profile = GameBootService.Profile;
+        if (profile != null)
+        {
+            var preset = profile.GetActivePresetResolved();
+            if (preset != null)
+            {
+                preset.spawnAnchorId = id;
+            }
+        }
+
         OnAnchorChanged?.Invoke(id);
         // Debug.Log($"[SpawnManager] CurrentAnchorId = {id}");
     }
@@ -57,17 +73,22 @@ public class SpawnManager : MonoBehaviour
         return SpawnAnchor.FindById(anchorId);
     }
 
-    /// <summary>Coloca al jugador en el anchor indicado usando TeleportService.</summary>
-    public static void PlaceAtAnchor(GameObject player, string anchorId, bool immediate = true)
+
+    /// <summary>Teletransporta al jugador al anchor indicado por id.</summary>
+    public static void TeleportTo(string anchorId, bool? useTransition = null)
     {
-        TeleportService.PlaceAtAnchor(player, anchorId, immediate);
-        // TeleportService ya llama a SetCurrentAnchor(anchorId)
+        if (string.IsNullOrEmpty(anchorId)) return;
+        var player = GameObject.FindWithTag("Player");
+        if (!player) { Debug.LogWarning("[SpawnManager] No se encontró player para teletransporte"); return; }
+        TeleportService.TeleportToAnchor(player, anchorId, useTransition);
     }
 
-    /// <summary>Coloca al jugador en el anchor actual (si existe).</summary>
-    public static void PlaceAtCurrent(GameObject player, bool immediate = true)
+    /// <summary>Teletransporta al jugador al anchor actual.</summary>
+    public static void TeleportToCurrent(bool? useTransition = null)
     {
         if (string.IsNullOrEmpty(CurrentAnchorId)) return;
-        TeleportService.PlaceAtAnchor(player, CurrentAnchorId, immediate);
+        var player = GameObject.FindWithTag("Player");
+        if (!player) { Debug.LogWarning("[SpawnManager] No se encontró player para teletransporte"); return; }
+        TeleportService.TeleportToAnchor(player, CurrentAnchorId, useTransition);
     }
 }

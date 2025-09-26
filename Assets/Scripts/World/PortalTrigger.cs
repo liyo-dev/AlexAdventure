@@ -94,7 +94,7 @@ public class PortalTrigger : MonoBehaviour
             }
         }
 
-        TeleportService.TeleportToAnchor(player, targetAnchorId);
+        SpawnManager.TeleportTo(targetAnchorId, true);
         // NO guardar aquí
     }
 }

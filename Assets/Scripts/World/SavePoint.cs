@@ -125,7 +125,7 @@ public class SavePoint : MonoBehaviour
         // Teletransporte opcional tras guardar
         if (teleportAfterSave && !string.IsNullOrEmpty(teleportAnchorId) && playerGo != null)
         {
-            TeleportService.TeleportToAnchor(playerGo, teleportAnchorId);
+            SpawnManager.TeleportTo(teleportAnchorId, true);
         }
     }
 

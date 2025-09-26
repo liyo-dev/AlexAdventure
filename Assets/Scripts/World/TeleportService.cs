@@ -1,7 +1,6 @@
 // Scripts/World/TeleportService.cs
 using UnityEngine;
 using UnityEngine.AI;
-using UnityEngine.Events;
 using EasyTransition;
 
 [DisallowMultipleComponent]
@@ -14,17 +13,20 @@ public class TeleportService : MonoBehaviour
         get
         {
             if (_inst != null) return _inst;
-            // #pragma para silenciar el warning CS0618 si te molesta (opcional)
+#if UNITY_2022_3_OR_NEWER
+            _inst = Object.FindFirstObjectByType<TeleportService>(FindObjectsInactive.Include);
+#else
 #pragma warning disable 618
             _inst = FindObjectOfType<TeleportService>(true);
 #pragma warning restore 618
+#endif
             return _inst;
         }
     }
 
     [Header("Transición (EasyTransition)")]
     [SerializeField] private TransitionSettings teleportTransition; // arrastra p.ej. Fade.asset
-    [SerializeField] private float transitionDelay = 0f;
+    [SerializeField] private float transitionDelay; // 0 por defecto implícito
     [SerializeField] private bool useTransitionByDefault = true;
 
     private void Awake()
@@ -34,50 +36,22 @@ public class TeleportService : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
-    // ================== API ESTÁTICA (compatibilidad) ==================
+    // ================== API ESTÁTICA mínima ==================
 
-    /// <summary>API antigua: immediate=true -> SIN transición | immediate=false -> CON transición.</summary>
-    public static void PlaceAtAnchor(GameObject player, string anchorName, bool immediate = true)
+    /// <summary>Teleporta a un anchor por id.</summary>
+    public static void TeleportToAnchor(GameObject player, string anchorId, bool? useTransition = null)
     {
         if (!Inst) return;
-        var anchor = FindAnchorByName(anchorName);
-        if (!anchor)
+        var sa = SpawnManager.GetAnchor(anchorId);
+        if (!sa)
         {
-            Debug.LogWarning($"[TeleportService] Anchor '{anchorName}' no encontrado.");
+            Debug.LogWarning($"[TeleportService] Anchor '{anchorId}' no encontrado.");
             return;
         }
-        bool useTrans = !immediate;
-        Inst.DoTeleportToAnchor(player, anchor, useTrans);
+        Inst.DoTeleportToAnchor(player, sa.transform, useTransition);
     }
 
-    /// <summary>Teleporta a un anchor por nombre. (Estático, compat.)</summary>
-    public static void TeleportToAnchor(GameObject player, string anchorName, bool? useTransition = null)
-    {
-        if (!Inst) return;
-        var anchor = FindAnchorByName(anchorName);
-        if (!anchor)
-        {
-            Debug.LogWarning($"[TeleportService] Anchor '{anchorName}' no encontrado.");
-            return;
-        }
-        Inst.DoTeleportToAnchor(player, anchor, useTransition);
-    }
-
-    /// <summary>Teleporta a un anchor por Transform. (Estático, compat.)</summary>
-    public static void TeleportToAnchor(GameObject player, Transform anchor, bool? useTransition = null)
-    {
-        if (!Inst) return;
-        Inst.DoTeleportToAnchor(player, anchor, useTransition);
-    }
-
-    /// <summary>Teleporta directo a posición/rotación. (Estático, compat.)</summary>
-    public static void TeleportToPosition(GameObject player, Vector3 worldPos, Quaternion worldRot, bool? useTransition = null)
-    {
-        if (!Inst) return;
-        Inst.DoTeleportToPosition(player, worldPos, worldRot, useTransition);
-    }
-
-    // ================== API de instancia (renombrada para no duplicar firmas) ==================
+    // ================== API de instancia ==================
 
     public void DoTeleportToAnchor(GameObject player, Transform anchor, bool? useTransition = null)
     {
@@ -87,19 +61,19 @@ public class TeleportService : MonoBehaviour
             return;
         }
 
+        // Sincronizar anchor actual (SpawnManager y runtimePreset) si conocemos su id
+        var sa = anchor.GetComponentInParent<SpawnAnchor>();
+        if (sa && !string.IsNullOrEmpty(sa.anchorId))
+        {
+            SpawnManager.SetCurrentAnchor(sa.anchorId);
+        }
+
         var pos = anchor.position;
         var rot = anchor.rotation;
         bool useTrans = useTransition ?? useTransitionByDefault;
 
         if (useTrans) TeleportWithTransition(player, pos, rot, anchor);
         else          MoveNow(player, pos, rot, anchor);
-    }
-
-    public void DoTeleportToPosition(GameObject player, Vector3 worldPos, Quaternion worldRot, bool? useTransition = null)
-    {
-        bool useTrans = useTransition ?? useTransitionByDefault;
-        if (useTrans) TeleportWithTransition(player, worldPos, worldRot, null);
-        else          MoveNow(player, worldPos, worldRot, null);
     }
 
     // ================== Núcleo transición / movimiento ==================
@@ -114,23 +88,20 @@ public class TeleportService : MonoBehaviour
             return;
         }
 
-        UnityEngine.Events.UnityAction onCut = null;
-        UnityEngine.Events.UnityAction onEnd = null;
-
-        onCut = () =>
+        void OnCut()
         {
             MovePlayerSafely(player, worldPos, worldRot);
             ApplyEnvironmentForAnchor(anchorForEnv);
-            tm.onTransitionCutPointReached -= onCut;
-        };
+            tm.onTransitionCutPointReached -= OnCut;
+        }
 
-        onEnd = () =>
+        void OnEnd()
         {
-            tm.onTransitionEnd -= onEnd;
-        };
+            tm.onTransitionEnd -= OnEnd;
+        }
 
-        tm.onTransitionCutPointReached += onCut;
-        tm.onTransitionEnd            += onEnd;
+        tm.onTransitionCutPointReached += OnCut;
+        tm.onTransitionEnd            += OnEnd;
 
         // OJO: usamos la versión SIN cambio de escena del plugin (la estable)
         tm.Transition(teleportTransition, transitionDelay);
@@ -181,20 +152,13 @@ public class TeleportService : MonoBehaviour
     }
 
     // ================== Utilidades ==================
-
-    private static Transform FindAnchorByName(string name)
-    {
-        var go = GameObject.Find(name);
-        return go ? go.transform : null;
-    }
     
     static EasyTransition.TransitionManager FindTM()
     {
 #if UNITY_2022_3_OR_NEWER
         return Object.FindFirstObjectByType<EasyTransition.TransitionManager>(FindObjectsInactive.Include);
 #else
-    return Object.FindObjectOfType<EasyTransition.TransitionManager>(true);
+        return Object.FindObjectOfType<EasyTransition.TransitionManager>(true);
 #endif
     }
-
 }

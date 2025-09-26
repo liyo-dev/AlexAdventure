@@ -29,7 +29,6 @@ public class WorldBootstrap : MonoBehaviour
 
     private void InitializeWorld()
     {
-        // Usar GameBootService en lugar del singleton
         var bootProfile = GameBootService.Profile;
         if (bootProfile == null)
         {
@@ -46,15 +45,14 @@ public class WorldBootstrap : MonoBehaviour
             SpawnManager.SetCurrentAnchor(anchor);
 
             var playerGo = GameObject.FindWithTag("Player");
-            if (playerGo) TeleportService.PlaceAtAnchor(playerGo, anchor, immediate: true);
+            if (playerGo) SpawnManager.TeleportTo(anchor, true);
 
             Debug.Log("[WorldBootstrap] Iniciado en modo PRESET");
             return;
         }
 
-        // 2) Flujo normal: intentar cargar partida
-        string anchorId = bootProfile.defaultAnchorId;
-        if (string.IsNullOrEmpty(anchorId)) anchorId = "Bedroom";
+        // 2) Flujo normal: intentar cargar partida; si no, usar anchor del preset activo
+        string anchorId = bootProfile.GetStartAnchorOrDefault();
 
         if (_saveSystem != null && _saveSystem.Load(out var data))
         {
@@ -77,7 +75,7 @@ public class WorldBootstrap : MonoBehaviour
         var player = GameObject.FindWithTag("Player");
         if (player) 
         {
-            TeleportService.PlaceAtAnchor(player, anchorId, immediate: true);
+            SpawnManager.TeleportTo(anchorId, true);
             Debug.Log($"[WorldBootstrap] Jugador colocado en anchor: {anchorId}");
         }
         else

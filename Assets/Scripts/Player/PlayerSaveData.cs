@@ -39,7 +39,8 @@ public class PlayerSaveData
         }
 
         var d = new PlayerSaveData();
-        d.lastSpawnAnchorId = SpawnManager.CurrentAnchorId ?? bootProfile.defaultAnchorId ?? "Bedroom";
+        var activeAnchor = preset.spawnAnchorId;
+        d.lastSpawnAnchorId = SpawnManager.CurrentAnchorId ?? activeAnchor ?? "Bedroom";
 
         // Obtener datos desde el preset activo
         d.level = preset.level;
