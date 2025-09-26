@@ -25,7 +25,7 @@ public class PlayerHealthUI : MonoBehaviour
     
     [Header("Configuración")]
     [SerializeField] private bool showHealthNumbers = true;
-    [SerializeField] private bool autoHide = false;
+    [SerializeField] private bool autoHide; // quitar valor por defecto para evitar warning de serializado
     [SerializeField] private float autoHideDelay = 3f;
     
     private PlayerHealthSystem _playerHealthSystem;
@@ -34,23 +34,35 @@ public class PlayerHealthUI : MonoBehaviour
     private Coroutine _animationCoroutine;
     private Coroutine _autoHideCoroutine;
     private Coroutine _damageFlashCoroutine;
-    
-    void Start()
+
+    void OnEnable()
     {
         FindPlayerHealthSystem();
         InitializeUI();
+        
+        // Forzar un repintado inmediato con la vida real si el sistema está disponible
+        if (_playerHealthSystem != null)
+        {
+            _currentFillAmount = _targetFillAmount = _playerHealthSystem.HealthPercentage;
+            UpdateHealthDisplay(_currentFillAmount, _playerHealthSystem.CurrentHealth, _playerHealthSystem.MaxHealth);
+        }
         
         if (autoHide)
             ShowHealthBar();
     }
     
-    void OnDestroy()
+    void OnDisable()
     {
+        // Desuscribir para no recibir eventos mientras está inactivo
         if (_playerHealthSystem != null)
         {
             _playerHealthSystem.OnHealthChanged.RemoveListener(UpdateHealthBar);
             _playerHealthSystem.OnDamageTaken.RemoveListener(OnDamageTaken);
         }
+        // Detener corutinas si estuvieran en curso
+        if (_animationCoroutine != null) { StopCoroutine(_animationCoroutine); _animationCoroutine = null; }
+        if (_autoHideCoroutine != null) { StopCoroutine(_autoHideCoroutine); _autoHideCoroutine = null; }
+        if (_damageFlashCoroutine != null) { StopCoroutine(_damageFlashCoroutine); _damageFlashCoroutine = null; }
     }
     
     private void FindPlayerHealthSystem()
@@ -63,7 +75,13 @@ public class PlayerHealthUI : MonoBehaviour
         
         if (_playerHealthSystem == null)
         {
-            _playerHealthSystem = FindObjectOfType<PlayerHealthSystem>();
+#if UNITY_2022_3_OR_NEWER
+            _playerHealthSystem = Object.FindFirstObjectByType<PlayerHealthSystem>(FindObjectsInactive.Include);
+#else
+#pragma warning disable 618
+            _playerHealthSystem = FindObjectOfType<PlayerHealthSystem>(true);
+#pragma warning restore 618
+#endif
         }
         
         if (_playerHealthSystem != null)
@@ -85,11 +103,28 @@ public class PlayerHealthUI : MonoBehaviour
         {
             healthBarFill.type = Image.Type.Filled;
             healthBarFill.fillMethod = Image.FillMethod.Horizontal;
-            healthBarFill.fillAmount = 1f;
-            healthBarFill.color = healthyColor;
+            // Inicializar con valores coherentes si tenemos el sistema de salud
+            if (_playerHealthSystem != null)
+            {
+                float ratio = _playerHealthSystem.HealthPercentage;
+                healthBarFill.fillAmount = ratio;
+                healthBarFill.color = GetHealthColor(ratio);
+            }
+            else
+            {
+                healthBarFill.fillAmount = 1f;
+                healthBarFill.color = healthyColor;
+            }
         }
         
-        UpdateHealthDisplay(1f, 100f, 100f);
+        if (_playerHealthSystem != null)
+        {
+            UpdateHealthDisplay(_playerHealthSystem.HealthPercentage, _playerHealthSystem.CurrentHealth, _playerHealthSystem.MaxHealth);
+        }
+        else
+        {
+            UpdateHealthDisplay(1f, 100f, 100f);
+        }
     }
     
     public void UpdateHealthBar(float healthRatio)
@@ -98,6 +133,14 @@ public class PlayerHealthUI : MonoBehaviour
         
         float currentHealth = _playerHealthSystem != null ? _playerHealthSystem.CurrentHealth : 0f;
         float maxHealth = _playerHealthSystem != null ? _playerHealthSystem.MaxHealth : 100f;
+
+        // Si el objeto está desactivado o el componente no está habilitado, no iniciar corutinas
+        if (!isActiveAndEnabled || !gameObject.activeInHierarchy)
+        {
+            _currentFillAmount = _targetFillAmount;
+            UpdateHealthDisplay(_currentFillAmount, currentHealth, maxHealth);
+            return;
+        }
         
         if (animateHealthChanges)
         {
@@ -171,6 +214,12 @@ public class PlayerHealthUI : MonoBehaviour
     
     private void OnDamageTaken(float damageAmount, float currentHealth)
     {
+        if (!isActiveAndEnabled || !gameObject.activeInHierarchy)
+        {
+            // Si está inactivo, no lanzar corutina; la barra se actualizará cuando se active
+            return;
+        }
+
         if (showDamageFlash)
         {
             if (_damageFlashCoroutine != null)
@@ -241,6 +290,7 @@ public class PlayerHealthUI : MonoBehaviour
     
     private void RestartAutoHideTimer()
     {
+        if (!isActiveAndEnabled || !gameObject.activeInHierarchy) return;
         if (_autoHideCoroutine != null)
             StopCoroutine(_autoHideCoroutine);
         _autoHideCoroutine = StartCoroutine(AutoHideTimer());
