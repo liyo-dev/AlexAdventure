@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: c9a6030113edbdb4c9b3f2e67d083e81
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 9100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 316370
+  packageName: RPG Tiny Hero World Bundle PBR
+  packageVersion: 1.0
+  assetPath: Assets/Art/Characters/RPG Tiny Hero Duo/Animator/THS_Stance.controller
+  uploadId: 747111

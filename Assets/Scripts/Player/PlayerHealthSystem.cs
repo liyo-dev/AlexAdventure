@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Oblivion.Core.Feedback;
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
@@ -396,7 +397,7 @@ public class PlayerHealthSystem : MonoBehaviour
         
         if (enableCameraShake)
         {
-            StartCoroutine(CameraShake());
+            FeedbackService.CameraShake(shakeIntensity, shakeDuration);
         }
     }
     
@@ -523,25 +524,7 @@ public class PlayerHealthSystem : MonoBehaviour
         OnHealthChanged?.Invoke(healthPercentage);
         OnHealthPercentageChanged?.Invoke(healthPercentage);
     }
-    
-    private IEnumerator CameraShake()
-    {
-        Vector3 originalPosition = transform.localPosition;
-        
-        float elapsed = 0f;
-        while (elapsed < shakeDuration)
-        {
-            float x = UnityEngine.Random.Range(-1f, 1f) * shakeIntensity;
-            float y = UnityEngine.Random.Range(-1f, 1f) * shakeIntensity;
-            transform.localPosition = new Vector3(x, y, originalPosition.z);
-            
-            elapsed += Time.deltaTime;
-            yield return null;
-        }
-        
-        transform.localPosition = originalPosition;
-    }
-    
+
     private IEnumerator ApplyKnockback()
     {
         Vector3 knockbackDirection = -transform.forward; // Empujar en la dirección opuesta a donde mira el jugador

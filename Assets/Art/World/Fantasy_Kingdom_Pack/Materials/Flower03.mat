@@ -107,9 +107,9 @@ Material:
     - _Emission: 1
     - _EmissionScaleUI: 0.3
     - _EnvironmentReflections: 1
-    - _GlossMapScale: 0
+    - _GlossMapScale: 1
     - _Glossiness: 0.1
-    - _GlossyReflections: 0
+    - _GlossyReflections: 1
     - _Metallic: 0.3
     - _Mode: 1
     - _OcclusionStrength: 1
@@ -134,7 +134,7 @@ Material:
     - _SpecColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
---- !u!114 &7076463743740759246
+--- !u!114 &8125947645661240653
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}

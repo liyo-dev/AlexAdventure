@@ -766,6 +766,9 @@ MonoBehaviour:
   nameText: {fileID: 1676841573}
   bodyText: {fileID: 794523450}
   portraitImage: {fileID: 822553940}
+  useTypewriter: 1
+  charsPerSecond: 35
+  allowSkipCurrentLine: 1
   advanceAction: {fileID: -4857292949242138091, guid: fc9f9f1bd7ce1874fb152afa8758ce88, type: 3}
   inputActionsToDisable:
   - {fileID: 3194171448160165153, guid: fc9f9f1bd7ce1874fb152afa8758ce88, type: 3}

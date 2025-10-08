@@ -6,9 +6,11 @@
 - [Sistema de Localización](#sistema-de-localización)
 - [GameBootService y GameBootProfile](#gamebootservice-y-gamebootprofile)
 - [Sistema de Salud del Jugador](#sistema-de-salud-del-jugador)
+- [Sistema de Maná](#sistema-de-maná)
 - [Sistema de Spawn y Anchors](#sistema-de-spawn-y-anchors)
 - [Sistema de Interacciones](#sistema-de-interacciones)
 - [Sistema de UI](#sistema-de-ui)
+- [Sistema de Feedback](#sistema-de-feedback)
 - [Sistema de Save/Load](#sistema-de-saveload)
 - [Guías de Uso](#guías-de-uso)
 
@@ -29,8 +31,9 @@ El juego utiliza una **arquitectura centralizada** basada en **GameBootService**
 
 ### Flujo de Inicialización:
 1. **Escena Start** → GameBootService carga GameBootProfile SO
-2. **Otras escenas** → Scripts esperan a `GameBootService.IsReady()`
-3. **Acceso** → `GameBootService.GetProfile()` en lugar de singleton automático
+2. Prepara el runtimePreset (ver Save/Load)
+3. Notifica `OnProfileReady` a los sistemas dependientes
+4. **Acceso** → `GameBootService.Profile.GetActivePresetResolved()` en lugar de singletons ocultos
 
 ---
 
@@ -408,256 +411,96 @@ Sistema para flotar en agua:
 
 ---
 
+## 🌟 Sistema de Feedback
+
+Sistema centralizado de retroalimentación visual/sonora. Punto único de entrada: `FeedbackService` (singleton auto-instalable, DontDestroyOnLoad) bajo el namespace `Oblivion.Core.Feedback`.
+
+- Orquestador: `FeedbackService`
+- Proveedores (Strategy) por defecto:
+  - `ICameraShakeProvider` → `TransformPivotCameraShakeProvider` (sacude solo la Main Camera base mediante un pivot; no mueve al Player; compatible con URP camera stacking).
+  - `IScreenFlashProvider` → `UiOverlayScreenFlashProvider` (Canvas Overlay con Image fullscreen y fade de alpha).
+  - `IHitStopProvider` → `SimpleHitStopProvider` (ajusta temporalmente `Time.timeScale` y usa `Time.unscaledDeltaTime`).
+  - `IVfxProvider` → `SimpleVfxProvider` (instancia prefab VFX con vida limitada y limpieza automática).
+  - `ISfxProvider` → `SimpleSfxProvider` (AudioSource 3D temporal en posición, limpieza al terminar).
+
+API de uso (desde cualquier script)
+- Camera Shake: `FeedbackService.CameraShake(0.6f, 0.25f)`
+- Screen Flash: `FeedbackService.ScreenFlash(new Color(1,0,0,0.35f), 0.25f)`
+- Hit Stop: `FeedbackService.HitStop(0f, 0.06f)`
+- VFX: `FeedbackService.PlayVFX(prefab, position, rotation, 2f)`
+- SFX: `FeedbackService.PlaySfx(clip, position, 0.9f)`
+
+Sustituir proveedores (por ejemplo, Cinemachine):
+```csharp
+using Oblivion.Core.Feedback;
+
+void Awake()
+{
+    FeedbackService.SetCameraShakeProvider(new CinemachineCameraShakeProvider());
+    // FeedbackService.SetScreenFlashProvider(...);
+    // FeedbackService.SetHitStopProvider(...);
+    // FeedbackService.SetVfxProvider(...);
+    // FeedbackService.SetSfxProvider(...);
+}
+```
+
+Integraciones clave
+- `PlayerHealthSystem` llama a `FeedbackService.CameraShake` al recibir daño.
+- En URP camera stacking, sólo la Main Camera con tag `MainCamera` tiembla; la overlay de UI/interactuables queda estable.
+
+---
+
 ## 💾 Sistema de Save/Load
 
-### PlayerSaveData.cs
-```csharp
-[Serializable]
-public class PlayerSaveData
-{
-    public string lastSpawnAnchorId;
-    public int level;
-    public float maxHp, currentHp;
-    public float maxMp, currentMp;
-    public List<AbilityId> abilities;
-    public List<SpellId> spells;
-    public List<string> flags;
-    
-    // Métodos actualizados para GameBootService
-    public static PlayerSaveData FromGameBootProfile()
-    public void ApplyToGameBootProfile()
-}
-```
+Flujo de arranque (preparación del `runtimePreset`):
+1. Si `usePresetInsteadOfSave = true` y hay `bootPreset` → se copia al `runtimePreset` (modo test/desarrollo).
+2. Si existe archivo de guardado (con `SaveSystem`) → se carga `PlayerSaveData` y se vuelca al `runtimePreset`.
+3. En otro caso → se copia `defaultPlayerPreset` al `runtimePreset` (fallback); si falta, se crea vacío.
 
-**Métodos actualizados:**
-- `FromGameBootProfile()` - Usa `GameBootService.GetProfile()`
-- `ApplyToGameBootProfile()` - Aplica datos al servicio
-- Métodos obsoletos marcados con `[System.Obsolete]`
+Reglas/convenciones:
+- Todos los sistemas leen/escriben sobre el `runtimePreset` vía `GameBootService.Profile.GetActivePresetResolved()`.
+- El punto de spawn se guarda en `PlayerPresetSO.spawnAnchorId` (no en GameBootProfile). `SpawnManager.SetCurrentAnchor(id)` sincroniza `runtimePreset.spawnAnchorId` y `SpawnManager.CurrentAnchorId`.
+- Salud/Maná:
+  - `PlayerHealthSystem` sincroniza `currentHP/maxHP` con el `runtimePreset` al cambiar.
+  - `ManaPool` hace lo mismo con `currentMP/maxMP` (si está presente).
 
-### Flujo de Save/Load
+Guardar partida:
+- `GameBootProfile.SaveCurrentGameState(saveSystem)`:
+  1) Actualiza el `runtimePreset` con el estado actual (anchor, HP/MP, etc.).
+  2) Construye `PlayerSaveData` desde el `runtimePreset` y lo guarda en JSON.
 
-**Save:**
-1. `GameBootService.GetProfile().SaveCurrentGameState()` → 
-2. `UpdateRuntimePresetFromCurrentState()` → 
-3. Obtiene datos de PlayerHealthSystem + ManaPool →
-4. `BuildSaveDataFromProfile()` → 
-5. `SaveSystem.Save()`
+Cargar partida:
+- `GameBootProfile.LoadProfile(saveSystem)`:
+  1) Lee `PlayerSaveData` del JSON.
+  2) Aplica los datos al `runtimePreset` (nivel, HP/MP, habilidades, hechizos, flags, anchor...).
 
-**Load:**
-1. `SaveSystem.Load()` →
-2. `GameBootProfile.SetRuntimePresetFromSave()` →
-3. PlayerHealthSystem lee desde GameBootService →
-4. ManaPool se sincroniza automáticamente
+Notas prácticas:
+- Para testear, usa `usePresetInsteadOfSave = true` y asigna `bootPreset` con la configuración deseada.
+- En escenas nuevas, coloca `SpawnAnchor` con el `anchorId` que usarás (p. ej. "Bedroom").
+- Asegúrate de que sólo la cámara base del stack tenga el tag `MainCamera`.
 
 ---
 
-## 📚 Guías de Uso
+## 🧭 Guías de Uso
 
-### Configuración Inicial del Juego
-
-1. **Crear GameBootService en escena start:**
-   ```csharp
-   // Crear GameObject en escena start
-   // Añadir GameBootService component
-   // Asignar GameBootProfile SO en inspector
-   ```
-
-2. **Crear GameBootProfile SO:**
-   ```csharp
-   Create → Game → Boot Profile
-   ```
-   - Configurar `defaultPlayerPreset`
-   - Establecer `defaultAnchorId`
-   - **NO colocar en Resources** (se asigna en GameBootService)
-
-3. **Configurar PlayerPresetSO:**
-   ```csharp
-   Create → Game → Player Preset
-   ```
-   - Establecer `spawnAnchorId`
-   - Configurar stats iniciales
-   - Definir habilidades/hechizos
-
-4. **Configurar LocalizationManager:**
-   - Crear GameObject con LocalizationManager
-   - Colocar archivos JSON en `Resources/Localization/`
-
-### Patrón de Script que usa GameBootService
-
+- Acceso a datos del jugador:
 ```csharp
-public class MyScript : MonoBehaviour
-{
-    void Start()
-    {
-        StartCoroutine(DelayedInitialization());
-    }
-    
-    private IEnumerator DelayedInitialization()
-    {
-        // Esperar hasta que GameBootService esté disponible
-        while (!GameBootService.IsReady())
-        {
-            yield return new WaitForSeconds(0.1f);
-        }
-        
-        InitializeMyScript();
-    }
-    
-    private void InitializeMyScript()
-    {
-        var bootProfile = GameBootService.GetProfile();
-        if (bootProfile == null) return;
-        
-        var preset = bootProfile.GetActivePresetResolved();
-        // ... tu lógica aquí
-    }
-}
+var profile = GameBootService.Profile;
+var preset  = profile.GetActivePresetResolved();
+// leer/escribir sobre preset: vida, maná, hechizos, flags, anchor...
 ```
 
-### Agregando Nuevos Textos Localizados
-
-1. **Para UI:**
-   ```csharp
-   // En Identifiers.cs
-   public enum UITextId 
-   {
-       MyNewButton,  // Agregar aquí
-   }
-   ```
-
-2. **En archivos JSON:**
-   ```json
-   {
-     "texts": [
-       {
-         "key": "MyNewButton",
-         "value": "Mi Nuevo Botón"
-       }
-     ]
-   }
-   ```
-
-3. **En UI:**
-   ```csharp
-   // Agregar LocalizedUI component
-   textId = UITextId.MyNewButton
-   fallbackText = "Fallback text"
-   ```
-
-### Creando Nuevas Interacciones
-
-1. **Diálogo Simple:**
-   ```csharp
-   // En el objeto
-   Interactable component:
-   - Mode = OpenDialogue
-   - dialogue = tu DialogueAsset
-   ```
-
-2. **Interacción Personalizada:**
-   ```csharp
-   // Crear script que implemente IInteractionSession
-   public class MyCustomInteraction : MonoBehaviour, IInteractionSession
-   {
-       public void BeginSession(GameObject player, System.Action onComplete)
-       {
-           // Tu lógica aquí
-           onComplete?.Invoke();
-       }
-   }
-   
-   // En Interactable:
-   - Mode = HandOffToTarget  
-   - sessionTarget = MyCustomInteraction component
-   ```
-
-### Sistema de Flags
-
+- Teletransporte:
 ```csharp
-// Verificar flag
-var preset = GameBootService.GetProfile()?.GetActivePresetResolved();
-bool hasFlag = preset?.flags?.Contains("myFlag") ?? false;
-
-// Establecer flag
-var bootProfile = GameBootService.GetProfile();
-var preset = bootProfile?.GetActivePresetResolved();
-if (preset != null)
-{
-    if (preset.flags == null) preset.flags = new List<string>();
-    if (!preset.flags.Contains("myFlag"))
-        preset.flags.Add("myFlag");
-}
+SpawnManager.SetCurrentAnchor("Bedroom"); // sincroniza runtimePreset.spawnAnchorId
+SpawnManager.TeleportToCurrent(true);       // opcional: con transición si está disponible
 ```
 
-### Debugging y Testing
-
-**LocalizationTester:**
-- Tecla Q para español
-- Tecla W para inglés
-- Tecla E para alternar
-- Tecla U para ayuda
-- Métodos públicos para UI de settings
-
-**GameBootService Debug:**
+- Guardar/Continuar:
 ```csharp
-var bootProfile = GameBootService.GetProfile();
-Debug.Log($"Preset activo: {bootProfile?.GetActivePresetResolved()?.name}");
-Debug.Log($"Anchor actual: {SpawnManager.CurrentAnchorId}");
-Debug.Log($"Servicio listo: {GameBootService.IsReady()}");
+var saveSystem = FindObjectOfType<SaveSystem>(true);
+GameBootService.Profile.SaveCurrentGameState(saveSystem); // guardar
+
+// Al iniciar:
+// GameBootService prepara automáticamente runtimePreset desde test/save/default
 ```
-
-**PlayerHealthSystem Testing:**
-```csharp
-playerHealth.TestDamage(25f);
-playerHealth.TestHeal(50f);
-playerHealth.SetGodMode(true);
-```
-
-### Flujo de Desarrollo Recomendado
-
-1. **Setup inicial:** GameBootService en start + GameBootProfile + PlayerPreset + LocalizationManager
-2. **Configurar anchors:** SpawnAnchor objects en el mundo
-3. **UI localizada:** Usar LocalizedUI en todos los textos
-4. **Interacciones:** Interactable + DialogueAssets o IInteractionSession
-5. **Save points:** SavePoint objects para guardar progreso
-6. **Testing:** LocalizationTester + debug keys
-
----
-
-## 🚀 Características del Sistema
-
-### ✅ **Ventajas:**
-- **Centralizado** - GameBootService gestiona todo desde escena start
-- **Modular** - Cada sistema es independiente pero sincronizado
-- **Persistente** - Save/Load automático integrado
-- **Localizable** - Sistema completo multiidioma
-- **Flexible** - Fácil testing con presets
-- **Robusto** - Manejo de errores y fallbacks
-- **Explícito** - No singleton automático, control manual del servicio
-
-### 🎯 **Casos de Uso:**
-- **RPG/Adventure** - Sistema completo de progresión
-- **Narrativa** - Diálogos y textos localizados
-- **Testing** - Presets para diferentes estados del juego
-- **Multiidioma** - Soporte completo de localización
-
-### 🔧 **Mantenimiento:**
-- **Logs claros** - Cada sistema reporta su estado
-- **Debugging** - Tools integradas para testing
-- **Modular** - Fácil modificar sistemas independientes
-- **Documentado** - Código auto-explicativo con comentarios
-- **Sin singleton mágico** - GameBootService explícito y controlado
-
-### 📋 **Diferencias vs Versión Anterior:**
-- ❌ **Eliminado**: `GameBootProfile.Instance` (singleton automático)
-- ❌ **Eliminado**: Carga automática desde `Resources/GameBootProfile`
-- ❌ **Eliminado**: PlayerState (simplificado)
-- ✅ **Nuevo**: GameBootService en escena start
-- ✅ **Nuevo**: Patrón `GameBootService.IsReady()` + `GetProfile()`
-- ✅ **Nuevo**: Inicialización explícita con corrutinas DelayedInitialization
-- ✅ **Mejorado**: SubtitleController con sincronización de LocalizationManager
-- ✅ **Mejorado**: LocalizationTester con nuevo Input System
-
----
-
-*Documentación actualizada: Diciembre 2024 - Versión GameBootService*

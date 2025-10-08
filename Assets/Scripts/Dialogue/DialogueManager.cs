@@ -14,6 +14,13 @@ public class DialogueManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI bodyText;
     [SerializeField] private Image portraitImage;
 
+    [Header("Typewriter")]
+    [SerializeField] private bool useTypewriter = true;
+    [Tooltip("Caracteres por segundo cuando useTypewriter está activo")] 
+    [SerializeField, Min(1f)] private float charsPerSecond = 35f;
+    [Tooltip("Si se pulsa Avanzar mientras escribe, completa la línea al instante")] 
+    [SerializeField] private bool allowSkipCurrentLine = true;
+
     [Header("Input (solo mando)")]
     [Tooltip("Acción para AVANZAR. Usa UI/Submit (Gamepad South = A).")]
     [SerializeField] private InputActionReference advanceAction;
@@ -31,6 +38,11 @@ public class DialogueManager : MonoBehaviour
     private int index = -1;
     private Action onEnd;
     public bool IsOpen => current != null;
+
+    // Typewriter estado
+    Coroutine _typeRoutine;
+    bool _isTyping;
+    string _currentText = string.Empty;
 
     void Awake()
     {
@@ -86,12 +98,23 @@ public class DialogueManager : MonoBehaviour
 
     public void Advance()
     {
-        if (IsOpen) Next();
+        if (!IsOpen) return;
+
+        // Si estamos escribiendo y se permite saltar, completar la línea actual
+        if (useTypewriter && _isTyping && allowSkipCurrentLine)
+        {
+            CompleteCurrentLineInstant();
+            return;
+        }
+
+        Next();
     }
 
     public void Close()
     {
         if (!IsOpen) return;
+
+        StopTypewriter();
 
         current = null;
         onEnd?.Invoke();
@@ -132,7 +155,7 @@ public class DialogueManager : MonoBehaviour
         if (resolveWithLocalizationManager && LocalizationManager.Instance != null)
             textToShow = LocalizationManager.Instance.Get(textToShow, textToShow);
 
-        if (bodyText) bodyText.text = textToShow;
+        _currentText = textToShow;
 
         if (portraitImage)
         {
@@ -141,9 +164,66 @@ public class DialogueManager : MonoBehaviour
                 portraitImage.sprite = line.portrait;
                 portraitImage.enabled = true;
             }
-            // Solo ocultar si explícitamente se quiere ocultar
-            // Si line.portrait es null, mantener el portrait anterior visible
+            // Si portrait es null, mantenemos el anterior visible
         }
+
+        if (bodyText)
+        {
+            // Preparar typewriter o texto completo
+            StopTypewriter();
+            bodyText.text = _currentText;
+            if (useTypewriter)
+            {
+                // Forzar actualización de mesh para obtener characterCount correcto
+                bodyText.ForceMeshUpdate();
+                bodyText.maxVisibleCharacters = 0;
+                _typeRoutine = StartCoroutine(TypeRoutine());
+            }
+            else
+            {
+                bodyText.maxVisibleCharacters = int.MaxValue; // todo el texto
+            }
+        }
+    }
+
+    private System.Collections.IEnumerator TypeRoutine()
+    {
+        _isTyping = true;
+        // Asegurar mesh info
+        bodyText.ForceMeshUpdate();
+        int total = bodyText.textInfo.characterCount;
+        int shown = 0;
+        if (charsPerSecond <= 0f) charsPerSecond = 35f;
+
+        while (shown < total)
+        {
+            // avanzar con tiempo no escalado para funcionar si Time.timeScale=0
+            shown += Mathf.Max(1, Mathf.FloorToInt(charsPerSecond * Time.unscaledDeltaTime));
+            bodyText.maxVisibleCharacters = Mathf.Clamp(shown, 0, total);
+            yield return null;
+        }
+
+        bodyText.maxVisibleCharacters = total;
+        _isTyping = false;
+        _typeRoutine = null;
+    }
+
+    private void CompleteCurrentLineInstant()
+    {
+        if (!bodyText) return;
+        StopTypewriter();
+        bodyText.ForceMeshUpdate();
+        bodyText.maxVisibleCharacters = bodyText.textInfo.characterCount;
+    }
+
+    private void StopTypewriter()
+    {
+        if (_typeRoutine != null)
+        {
+            StopCoroutine(_typeRoutine);
+            _typeRoutine = null;
+        }
+        _isTyping = false;
     }
 
     private void SetGameplayEnabled(bool enable)

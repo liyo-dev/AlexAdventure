@@ -750,8 +750,8 @@ ModelImporter:
   assetBundleVariant: 
 AssetOrigin:
   serializedVersion: 1
-  productId: 225148
-  packageName: RPG Tiny Hero Duo PBR Polyart
-  packageVersion: 2.0
-  assetPath: Assets/RPG Tiny Hero Duo/Animation/SwordAndShield/RootMotion/MoveFWD_Battle_RM_SwordAndShield.fbx
-  uploadId: 521528
+  productId: 316370
+  packageName: RPG Tiny Hero World Bundle PBR
+  packageVersion: 1.0
+  assetPath: Assets/Art/Characters/RPG Tiny Hero Duo/Animation/SwordAndShield/RootMotion/MoveFWD_Battle_RM_SwordAndShield.fbx
+  uploadId: 747111

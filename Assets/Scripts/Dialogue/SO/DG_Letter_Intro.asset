@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DialogueAsset
   lines:
   - speakerName: Eldran
-    text: esto es una prueba
+    text: Alex ven a verme cuando despiertes.
     portrait: {fileID: 21300000, guid: 170c3148924dd1548874918d63b2c1bb, type: 3}
   - speakerName: Eldran
-    text: esto tambien
+    text: Te espero en la playa del bosque.
     portrait: {fileID: 0}

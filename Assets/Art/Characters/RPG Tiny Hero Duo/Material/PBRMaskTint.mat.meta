@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 146ca486924177b48b85db63cfd5d7ab
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 316370
+  packageName: RPG Tiny Hero World Bundle PBR
+  packageVersion: 1.0
+  assetPath: Assets/Art/Characters/RPG Tiny Hero Duo/Material/PBRMaskTint.mat
+  uploadId: 747111

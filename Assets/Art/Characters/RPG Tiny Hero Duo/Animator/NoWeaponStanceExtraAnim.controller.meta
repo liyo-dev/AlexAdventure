@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 337e4ebe27f93aa4a9b56384dc78b957
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 9100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 316370
+  packageName: RPG Tiny Hero World Bundle PBR
+  packageVersion: 1.0
+  assetPath: Assets/Art/Characters/RPG Tiny Hero Duo/Animator/NoWeaponStanceExtraAnim.controller
+  uploadId: 747111

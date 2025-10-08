@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 042ba3fa166522843893806b95b7fabd
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 316370
+  packageName: RPG Tiny Hero World Bundle PBR
+  packageVersion: 1.0
+  assetPath: Assets/Art/Characters/RPG Tiny Hero Duo/Material/DefaultPBR.mat
+  uploadId: 747111

@@ -4,16 +4,21 @@
 public class PlayerWaterFloat : MonoBehaviour
 {
     [Header("Configuración de Flotación")]
-    [SerializeField] private float buoyancyForce = 15f;
+    [SerializeField] private float buoyancyForce = 15f; // obsoleto (no usado directamente), mantenido por compatibilidad
     [SerializeField] private float waterDrag = 2f;
     [SerializeField] private float waterAngularDrag = 5f;
     [SerializeField] private float maxSubmergedDepth = 2f;
     [SerializeField] private LayerMask waterLayerMask = -1;
+    [Tooltip("Multiplicador de flotación respecto al peso (1 = igual al peso, >1 flota más rápido)")]
+    [SerializeField, Min(0f)] private float buoyancyMultiplier = 1.25f;
+    [Tooltip("Límite de velocidad vertical descendente dentro del agua")]
+    [SerializeField, Min(0f)] private float maxDownwardSpeed = 6f;
     
     [Header("Debug")]
     [SerializeField] private bool showDebugInfo = false;
     
     private Rigidbody rb;
+    private Collider playerCollider;
     private float originalDrag;
     private float originalAngularDrag;
     private bool isInWater = false;
@@ -23,6 +28,7 @@ public class PlayerWaterFloat : MonoBehaviour
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
+        playerCollider = GetComponent<Collider>();
         originalDrag = rb.linearDamping;
         originalAngularDrag = rb.angularDamping;
     }
@@ -38,12 +44,24 @@ public class PlayerWaterFloat : MonoBehaviour
     
     private void OnTriggerStay(Collider other)
     {
-        if (IsWaterLayer(other.gameObject.layer) && isInWater)
+        // Actualizar la referencia/superficie si seguimos en el agua
+        if (IsWaterLayer(other.gameObject.layer))
         {
-            ApplyBuoyancy(other);
+            if (!isInWater)
+                EnterWater(other);
+            else if (waterCollider == other)
+                waterSurfaceY = other.bounds.max.y;
         }
     }
     
+    private void FixedUpdate()
+    {
+        if (isInWater && waterCollider)
+        {
+            ApplyBuoyancy();
+        }
+    }
+
     private void OnTriggerExit(Collider other)
     {
         if (IsWaterLayer(other.gameObject.layer) && waterCollider == other)
@@ -88,12 +106,13 @@ public class PlayerWaterFloat : MonoBehaviour
             Debug.Log("[PlayerWaterFloat] Jugador salió del agua");
     }
     
-    private void ApplyBuoyancy(Collider waterCol)
+    private void ApplyBuoyancy()
     {
         if (!rb || !isInWater) return;
         
-        // Calcular qué tan sumergido está el jugador
-        float playerBottom = transform.position.y - (GetComponent<Collider>()?.bounds.size.y * 0.5f ?? 1f);
+        // Calcular qué tan sumergido está el jugador (desde el fondo del collider)
+        float halfHeight = playerCollider ? playerCollider.bounds.extents.y : 0.5f;
+        float playerBottom = (playerCollider ? playerCollider.bounds.center.y : transform.position.y) - halfHeight;
         float submersionDepth = waterSurfaceY - playerBottom;
         
         // Solo aplicar flotación si está parcial o totalmente sumergido
@@ -102,19 +121,20 @@ public class PlayerWaterFloat : MonoBehaviour
             // Calcular factor de flotación (0-1 basado en profundidad)
             float submersionFactor = Mathf.Clamp01(submersionDepth / maxSubmergedDepth);
             
-            // Aplicar fuerza de flotación hacia arriba
-            Vector3 buoyancy = Vector3.up * buoyancyForce * submersionFactor * Time.fixedDeltaTime;
-            rb.AddForce(buoyancy, ForceMode.Force);
+            // Fuerza de flotación: contrarresta el peso proporcionalmente a la inmersión
+            float gravity = Physics.gravity.magnitude;
+            float upForce = rb.mass * gravity * buoyancyMultiplier * submersionFactor;
+            rb.AddForce(Vector3.up * upForce, ForceMode.Force); // NO multiplicar por dt
             
-            // Reducir velocidad vertical si está cayendo muy rápido
-            if (rb.linearVelocity.y < -5f)
+            // Limitar velocidad vertical descendente dentro del agua
+            if (rb.linearVelocity.y < -maxDownwardSpeed)
             {
-                rb.linearVelocity = new Vector3(rb.linearVelocity.x, rb.linearVelocity.y * 0.8f, rb.linearVelocity.z);
+                rb.linearVelocity = new Vector3(rb.linearVelocity.x, -maxDownwardSpeed, rb.linearVelocity.z);
             }
             
             if (showDebugInfo)
             {
-                Debug.Log($"[PlayerWaterFloat] Profundidad: {submersionDepth:F2}, Factor: {submersionFactor:F2}");
+                Debug.Log($"[PlayerWaterFloat] Profundidad: {submersionDepth:F2}, Factor: {submersionFactor:F2}, UpF: {upForce:F1}");
             }
         }
     }

@@ -4,6 +4,7 @@ using UnityEngine.AI;
 using EasyTransition;
 
 [DisallowMultipleComponent]
+[DefaultExecutionOrder(-200)]
 public class TeleportService : MonoBehaviour
 {
     // ===== Singleton mínimo =====
@@ -14,10 +15,25 @@ public class TeleportService : MonoBehaviour
         {
             if (_inst != null) return _inst;
 #if UNITY_2022_3_OR_NEWER
-            _inst = Object.FindFirstObjectByType<TeleportService>(FindObjectsInactive.Include);
+            // Intentar seleccionar la mejor instancia disponible (preferir la que tenga settings asignados)
+            var list = Object.FindObjectsByType<TeleportService>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            TeleportService best = null;
+            foreach (var it in list)
+            {
+                if (best == null) best = it;
+                if (it && it.teleportTransition != null) { best = it; break; }
+            }
+            _inst = best;
 #else
 #pragma warning disable 618
-            _inst = FindObjectOfType<TeleportService>(true);
+            var list = FindObjectsOfType<TeleportService>(true);
+            TeleportService best = null;
+            foreach (var it in list)
+            {
+                if (best == null) best = it;
+                if (it && it.teleportTransition != null) { best = it; break; }
+            }
+            _inst = best;
 #pragma warning restore 618
 #endif
             return _inst;
@@ -29,12 +45,26 @@ public class TeleportService : MonoBehaviour
     [SerializeField] private float transitionDelay; // 0 por defecto implícito
     [SerializeField] private bool useTransitionByDefault = true;
 
+    // Flag propio para no invocar Transition() cuando ya hay una en curso (el plugin usa el mismo mensaje de error)
+    private static bool _sTransitionInProgress;
+
     private void Awake()
     {
         if (_inst != null && _inst != this) { Destroy(gameObject); return; }
         _inst = this;
         DontDestroyOnLoad(gameObject);
+        Debug.Log($"[TeleportService] Awake in '{name}' | TransitionSettings: {(teleportTransition ? teleportTransition.name : "<null>")}");
     }
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        if (!teleportTransition)
+        {
+            Debug.LogWarning("[TeleportService] No hay TransitionSettings asignado. El teletransporte usará modo inmediato.", this);
+        }
+    }
+#endif
 
     // ================== API ESTÁTICA mínima ==================
 
@@ -70,10 +100,28 @@ public class TeleportService : MonoBehaviour
 
         var pos = anchor.position;
         var rot = anchor.rotation;
-        bool useTrans = useTransition ?? useTransitionByDefault;
 
-        if (useTrans) TeleportWithTransition(player, pos, rot, anchor);
-        else          MoveNow(player, pos, rot, anchor);
+        // Decidir si podemos hacer transición de forma segura
+        bool wantTransition = useTransition ?? useTransitionByDefault;
+        var tm = wantTransition ? FindTM() : null;
+        bool hasSettings = teleportTransition != null;
+        bool pluginBusy = IsPluginTransitionRunning();
+        bool canTransition = wantTransition && hasSettings && tm != null && !_sTransitionInProgress && !pluginBusy;
+
+        if (!canTransition && wantTransition)
+        {
+            if (_sTransitionInProgress)
+                Debug.LogWarning("[TeleportService] Una transición ya está en curso (local). Se hace teletransporte inmediato para evitar el error del plugin.");
+            else if (pluginBusy)
+                Debug.LogWarning("[TeleportService] TransitionManager está ocupado con otra transición. Teletransporte inmediato.");
+            else if (teleportTransition == null)
+                Debug.LogWarning("[TeleportService] No hay TransitionSettings asignado. Se hace teletransporte inmediato.");
+            else if (tm == null)
+                Debug.LogWarning("[TeleportService] No se encontró TransitionManager. Se hace teletransporte inmediato.");
+        }
+
+        if (canTransition) TeleportWithTransition(player, pos, rot, anchor);
+        else               MoveNow(player, pos, rot, anchor);
     }
 
     // ================== Núcleo transición / movimiento ==================
@@ -81,12 +129,23 @@ public class TeleportService : MonoBehaviour
     private void TeleportWithTransition(GameObject player, Vector3 worldPos, Quaternion worldRot, Transform anchorForEnv)
     {
         var tm = FindTM(); // ← seguro, no usa Instance()
-        if (tm == null || !teleportTransition)
+        if (tm == null || teleportTransition == null)
         {
             // Si el manager aún no está o no tienes settings, teleporta sin fade (no rompe)
             MoveNow(player, worldPos, worldRot, anchorForEnv);
             return;
         }
+
+        if (_sTransitionInProgress)
+        {
+            Debug.LogWarning("[TeleportService] Se intentó iniciar una transición mientras otra sigue activa. Ejecutando teletransporte inmediato.");
+            MoveNow(player, worldPos, worldRot, anchorForEnv);
+            return;
+        }
+
+        Debug.Log($"[TeleportService] Transition OK → Settings='{teleportTransition.name}', Delay={transitionDelay:0.00}, Manager='{tm.name}'");
+
+        _sTransitionInProgress = true;
 
         void OnCut()
         {
@@ -97,6 +156,7 @@ public class TeleportService : MonoBehaviour
 
         void OnEnd()
         {
+            _sTransitionInProgress = false;
             tm.onTransitionEnd -= OnEnd;
         }
 
@@ -153,12 +213,22 @@ public class TeleportService : MonoBehaviour
 
     // ================== Utilidades ==================
     
-    static EasyTransition.TransitionManager FindTM()
+    static TransitionManager FindTM()
     {
 #if UNITY_2022_3_OR_NEWER
-        return Object.FindFirstObjectByType<EasyTransition.TransitionManager>(FindObjectsInactive.Include);
+        return Object.FindFirstObjectByType<TransitionManager>(FindObjectsInactive.Include);
 #else
-        return Object.FindObjectOfType<EasyTransition.TransitionManager>(true);
+        return Object.FindObjectOfType<TransitionManager>(true);
+#endif
+    }
+
+    static bool IsPluginTransitionRunning()
+    {
+#if UNITY_2022_3_OR_NEWER
+        var t = Object.FindFirstObjectByType<Transition>(FindObjectsInactive.Include);
+        return t != null;
+#else
+        return Object.FindObjectOfType<Transition>(true) != null;
 #endif
     }
 }
