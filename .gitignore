@@ -105,3 +105,12 @@ InitTestScene*.unity*
 
 # --- Demos del Fantasy Kingdom (no versionar) ---
 Assets/Art/World/Fantasy_Kingdom_Pack/Demo/**
+
+# --- Unity Lighting/GI (regenerable) ---
+**/LightingData.asset
+**/LightingData.asset.meta
+**/Lightmap-*.exr
+**/ReflectionProbe-*.exr
+**/GI/**
+# --- Demos del Fantasy Kingdom ---
+Assets/Art/World/Fantasy_Kingdom_Pack/Demo/**
