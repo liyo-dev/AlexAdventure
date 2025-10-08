@@ -96,3 +96,12 @@ InitTestScene*.unity*
 
 # Auto-generated scenes by play mode tests
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
+
+# --- Unity Lighting / GI (regenerable) ---
+**/LightingData.asset
+**/Lightmap-*.exr
+**/ReflectionProbe-*.exr
+**/GI/**
+
+# --- Demos del Fantasy Kingdom (no versionar) ---
+Assets/Art/World/Fantasy_Kingdom_Pack/Demo/**
