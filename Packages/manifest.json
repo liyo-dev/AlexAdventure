@@ -20,6 +20,7 @@
     "com.unity.nuget.mono-cecil": "1.11.5",
     "com.unity.nuget.newtonsoft-json": "3.2.1",
     "com.unity.package-validation-suite": "0.22.0-preview",
+    "com.unity.performance.profile-analyzer": "1.2.4",
     "com.unity.render-pipelines.core": "17.2.0",
     "com.unity.render-pipelines.universal": "17.2.0",
     "com.unity.render-pipelines.universal-config": "17.0.3",
