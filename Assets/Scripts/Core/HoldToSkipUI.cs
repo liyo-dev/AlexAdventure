@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using UnityEngine.Playables;
 
 [DisallowMultipleComponent]
 public class HoldToSkipUI : MonoBehaviour
@@ -22,6 +23,12 @@ public class HoldToSkipUI : MonoBehaviour
     [Tooltip("Acción a mantener. ASÍG-NALA: UI/Submit o la que quieras. (Si queda vacío, usa <Gamepad>/buttonSouth)")]
     [SerializeField] private InputActionReference holdActionRef;
 
+    [Header("Acción al Completar")]
+    [SerializeField] private SkipAction skipAction = SkipAction.UnityEventOnly;
+    
+    [SerializeField, Tooltip("Timeline a finalizar (si SkipAction = StopTimeline). Si está vacío, busca automáticamente.")]
+    private PlayableDirector timelineToStop;
+
     [Header("Eventos")]
     public UnityEvent OnSkipCompleted;
 
@@ -32,6 +39,12 @@ public class HoldToSkipUI : MonoBehaviour
     private float targetAlpha;
     private bool completed;
     private InputAction fallback;   // por si no asignas nada
+
+    public enum SkipAction
+    {
+        UnityEventOnly,  // Solo dispara el UnityEvent
+        StopTimeline     // Detiene el Timeline
+    }
 
     void Awake()
     {
@@ -124,8 +137,42 @@ public class HoldToSkipUI : MonoBehaviour
             if (t >= 1f)
             {
                 completed = true;
-                OnSkipCompleted?.Invoke();
+                ExecuteSkipAction();
                 if (disableSelfOnSkip) gameObject.SetActive(false);
+            }
+        }
+    }
+
+    private void ExecuteSkipAction()
+    {
+        if (skipAction == SkipAction.StopTimeline)
+        {
+            StopTimeline();
+        }
+        
+        // Siempre disparar el UnityEvent
+        OnSkipCompleted?.Invoke();
+    }
+
+    private void StopTimeline()
+    {
+        if (timelineToStop != null)
+        {
+            timelineToStop.Stop();
+            Debug.Log($"[HoldToSkipUI] Timeline detenido: {timelineToStop.name}");
+        }
+        else
+        {
+            // Intentar encontrar el PlayableDirector en la escena
+            var director = FindFirstObjectByType<PlayableDirector>();
+            if (director != null)
+            {
+                director.Stop();
+                Debug.Log($"[HoldToSkipUI] Timeline encontrado y detenido: {director.name}");
+            }
+            else
+            {
+                Debug.LogWarning("[HoldToSkipUI] No se encontró ningún PlayableDirector para detener.");
             }
         }
     }
@@ -171,4 +218,6 @@ public class HoldToSkipUI : MonoBehaviour
     // API
     public void SetHoldSeconds(float seconds) => holdSeconds = Mathf.Max(0.2f, seconds);
     public void SetIcon(Sprite s) { if (buttonIcon) buttonIcon.sprite = s; }
+    public void SetSkipAction(SkipAction action) => skipAction = action;
+    public void SetTimelineToStop(PlayableDirector director) => timelineToStop = director;
 }
