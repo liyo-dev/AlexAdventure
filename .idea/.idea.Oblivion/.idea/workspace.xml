@@ -6,15 +6,41 @@
   <component name="ChangeListManager">
     <list default="true" id="9eabfba9-47fb-4d93-81a2-90082062f2b7" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Oblivion/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Oblivion/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Fonts/Nunito-Bold SDF.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Fonts/Nunito-Bold SDF.asset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Art/World/Fantasy_Kingdom_Pack/Materials/Flower09.mat" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Art/World/Fantasy_Kingdom_Pack/Materials/Flower09.mat" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Fonts/Nunito-ExtraBold SDF.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Fonts/Nunito-ExtraBold SDF.asset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Fonts/Nunito-Regular SDF.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Fonts/Nunito-Regular SDF.asset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Fonts/Nunito-SemiBold SDF.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Fonts/Nunito-SemiBold SDF.asset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Plugins/Fly Animations.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Plugins/Fly Animations/Animations.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Plugins/Fly Animations/Animations/Fly.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Plugins/Fly Animations/Animations/Fly/fly_dive.anim" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Plugins/Fly Animations/Animations/Fly/fly_dive.anim.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Plugins/Fly Animations/Animations/Fly/fly_idle.anim" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Plugins/Fly Animations/Animations/Fly/fly_idle.anim.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Plugins/Fly Animations/Animations/Idle.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Plugins/Fly Animations/Animations/Idle/Idle.anim" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Plugins/Fly Animations/Animations/Idle/Idle.anim.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Plugins/Fly Animations/Animations/Jumping.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Plugins/Fly Animations/Animations/Jumping/fall.anim" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Plugins/Fly Animations/Animations/Jumping/fall.anim.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Plugins/Fly Animations/Animations/Jumping/jump_start.anim" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Plugins/Fly Animations/Animations/Jumping/jump_start.anim.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Plugins/Fly Animations/Animations/Locomotion.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Plugins/Fly Animations/Animations/Locomotion/jog_fwd.anim" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Plugins/Fly Animations/Animations/Locomotion/jog_fwd.anim.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Plugins/Fly Animations/Animations/Locomotion/run_fwd.anim" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Plugins/Fly Animations/Animations/Locomotion/run_fwd.anim.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Plugins/Fly Animations/Animations/Locomotion/sprint_fwd.anim" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Plugins/Fly Animations/Animations/Locomotion/sprint_fwd.anim.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Plugins/Fly Animations/Animations/Locomotion/strafe.anim" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Plugins/Fly Animations/Animations/Locomotion/strafe.anim.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Plugins/Fly Animations/Animations/Locomotion/strafe_45.anim" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Plugins/Fly Animations/Animations/Locomotion/strafe_45.anim.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Plugins/Fly Animations/Animations/Locomotion/walk_fwd.anim" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Plugins/Fly Animations/Animations/Locomotion/walk_fwd.anim.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Plugins/Fly Animations/Animators.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Plugins/Fly Animations/Animators/CharacterController.controller" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Plugins/Fly Animations/Animators/CharacterController.controller.meta" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scenes/Main World/MainWorld.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scenes/Main World/MainWorld.unity" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Settings/PC_RPAsset.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Settings/PC_RPAsset.asset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Settings/SampleSceneProfile.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Settings/SampleSceneProfile.asset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Settings/UniversalRenderPipelineGlobalSettings.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Settings/UniversalRenderPipelineGlobalSettings.asset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/VFX/fireAttackEffects/pipelineAsset/Global Volume Profile.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/VFX/fireAttackEffects/pipelineAsset/Global Volume Profile.asset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Packages/manifest.json" beforeDir="false" afterPath="$PROJECT_DIR$/Packages/manifest.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Packages/packages-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/Packages/packages-lock.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ProjectSettings/GraphicsSettings.asset" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectSettings/GraphicsSettings.asset" afterDir="false" />
@@ -92,6 +118,7 @@
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/World/AnchorEnvironment.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/World/AnchorRegistry.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/World/EnvironmentController.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Library/PackageCache/com.unity.render-pipelines.universal@1e1527b3a17b/Shaders/Terrain/TerrainLit.shader" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
   <component name="ProblemsViewState">
@@ -216,7 +243,9 @@
       <workItem from="1758878036884" duration="17822000" />
       <workItem from="1758950015194" duration="3680000" />
       <workItem from="1759656491482" duration="15813000" />
-      <workItem from="1759920101401" duration="1389000" />
+      <workItem from="1759920101401" duration="3182000" />
+      <workItem from="1759951679179" duration="22000" />
+      <workItem from="1759951934197" duration="2363000" />
     </task>
     <task id="LOCAL-00001" summary="Add new asset metadata files for various components in the project">
       <option name="closed" value="true" />

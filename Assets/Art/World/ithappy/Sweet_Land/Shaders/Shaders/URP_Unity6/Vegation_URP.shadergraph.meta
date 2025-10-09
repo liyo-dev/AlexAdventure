@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: d53049a771d0d774191ea7ba6db51710
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+AssetOrigin:
+  serializedVersion: 1
+  productId: 321342
+  packageName: Sweet Land - Low Poly 3D Models Pack
+  packageVersion: 1.3
+  assetPath: Assets/ithappy/Sweet_Land/Shaders/Shaders/URP_Unity6/Vegation_URP.shadergraph
+  uploadId: 800130

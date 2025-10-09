@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: db5e0c11d2954df887d783152565165e
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 321342
+  packageName: Sweet Land - Low Poly 3D Models Pack
+  packageVersion: 1.3
+  assetPath: Assets/ithappy/Sweet_Land/Scripts/Demonstration/Character/KingsGrummy.cs
+  uploadId: 800130
