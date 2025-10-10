@@ -66,3 +66,28 @@ public enum DialogueId
     Tutorial_Combat,
     Tutorial_Magic
 }
+
+public enum PartCategory
+{
+    Body, Cloak, Head, Hair, Eyes, Mouth, Hat, Eyebrow,
+    Accessory, // gafas, cuernos, etc. (AC01…)
+    WeaponL, WeaponR, ShieldR, Bow, Arrows, Spear, Wand, THS_Sword, OHS_Sword, Axe, Hammer
+}
+
+public enum PartCat
+{
+    Body, Cloak, Accessory, Eyes, Mouth, Hair, Head, Hat, Eyebrow,
+    Bow, OHS, Shield, Arrows
+}
+
+public enum WeaponStance
+{
+    None = 0,
+    SingleSword = 1,
+    SwordAndShield = 2,
+    TwoHandSword = 3,
+    BowAndArrow = 4,
+    Spear = 5,
+    MagicWand = 6,
+    DoubleSword = 7
+}

@@ -29,7 +29,7 @@ public static class FindBRGIssues
         Debug.Log("<b>[Scan]</b> Buscando causas típicas de BRG/DOTS instancing en la <b>escena activa</b>…");
 
         // 1) Cámaras con Occlusion Culling activo
-        foreach (var cam in UnityEngine.Object.FindObjectsOfType<Camera>(true))
+        foreach (var cam in UnityEngine.Object.FindObjectsByType<Camera>(FindObjectsSortMode.None))
         {
             if (cam.useOcclusionCulling) // <- propiedad correcta
             {
@@ -39,7 +39,7 @@ public static class FindBRGIssues
         }
 
         // 2) Terrains con Draw Instanced
-        foreach (var t in UnityEngine.Object.FindObjectsOfType<Terrain>(true))
+        foreach (var t in UnityEngine.Object.FindObjectsByType<Terrain>(FindObjectsSortMode.None))
         {
             if (t.drawInstanced)
             {
@@ -69,7 +69,7 @@ public static class FindBRGIssues
         }
 
         // 3) LODGroups cuyo último LOD está vacío (culled)
-        foreach (var lg in UnityEngine.Object.FindObjectsOfType<LODGroup>(true))
+        foreach (var lg in UnityEngine.Object.FindObjectsByType<LODGroup>(FindObjectsSortMode.None))
         {
             try
             {
@@ -88,7 +88,7 @@ public static class FindBRGIssues
         }
 
         // 4) Componentes sospechosos por nombre de tipo
-        var monos = UnityEngine.Object.FindObjectsOfType<MonoBehaviour>(true);
+        var monos = UnityEngine.Object.FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
         foreach (var mb in monos)
         {
             if (mb == null) continue;
@@ -114,7 +114,7 @@ public static class FindBRGIssues
         int changes = 0;
 
         // Cámaras: apagar Occlusion Culling
-        foreach (var cam in UnityEngine.Object.FindObjectsOfType<Camera>(true))
+        foreach (var cam in UnityEngine.Object.FindObjectsByType<Camera>(FindObjectsSortMode.None))
         {
             if (cam.useOcclusionCulling) // <- propiedad correcta
             {
@@ -125,7 +125,7 @@ public static class FindBRGIssues
         }
 
         // Terrains: apagar Draw Instanced y desinstanciar detalles
-        foreach (var t in UnityEngine.Object.FindObjectsOfType<Terrain>(true))
+        foreach (var t in UnityEngine.Object.FindObjectsByType<Terrain>(FindObjectsSortMode.None))
         {
             if (t.drawInstanced)
             {
@@ -163,7 +163,7 @@ public static class FindBRGIssues
         }
 
         // LODGroups: solo aviso (no cambio automático)
-        foreach (var lg in UnityEngine.Object.FindObjectsOfType<LODGroup>(true))
+        foreach (var lg in UnityEngine.Object.FindObjectsByType<LODGroup>(FindObjectsSortMode.None))
         {
             var lods = lg.GetLODs();
             if (lods != null && lods.Length > 0)
