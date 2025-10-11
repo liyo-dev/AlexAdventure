@@ -1,8 +1,6 @@
 #if UNITY_EDITOR
 using UnityEngine;
 using UnityEditor;
-using UnityEditor.SceneManagement;
-using UnityEngine.SceneManagement;
 
 public static class ModularCharacterBaker
 {
@@ -16,43 +14,43 @@ public static class ModularCharacterBaker
             return;
         }
 
-        // Evita referencias del Inspector a hijos que vamos a destruir
-        Selection.activeObject = null;
+        // Crear una copia en la escena
+        GameObject clone = Object.Instantiate(src);
+        clone.name = src.name + "_BAKED";
+        
+        // Posicionar al lado del original 
+        clone.transform.position = src.transform.position + Vector3.right * 2f;
+        clone.transform.rotation = src.transform.rotation;
 
-        var tempScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
-        GameObject clone = null;
+        // Eliminar todos los GameObjects inactivos (SetActive = false)
+        RemoveInactiveRecursive(clone.transform);
+        
+        // Eliminar holders vacíos
+        RemoveEmptyHolders(clone.transform);
 
-        try
-        {
-            clone = Object.Instantiate(src);
-            clone.name = src.name + "_BAKED";
-            SceneManager.MoveGameObjectToScene(clone, tempScene);
-
-            RemoveInactiveRecursive(clone.transform);
-            RemoveEmptyHolders(clone.transform);
-
-            string dir = "Assets/Prefabs/NPCs";
-            System.IO.Directory.CreateDirectory(dir);
-            string path = AssetDatabase.GenerateUniqueAssetPath($"{dir}/{clone.name}.prefab");
-
-            PrefabUtility.SaveAsPrefabAsset(clone, path);
-            EditorUtility.DisplayDialog("Baked!", $"Prefab creado:\n{path}", "Ok");
-        }
-        finally
-        {
-            if (clone) Object.DestroyImmediate(clone);
-            EditorSceneManager.CloseScene(tempScene, true);
-            EditorUtility.UnloadUnusedAssetsImmediate();
-            AssetDatabase.Refresh();
-        }
+        // Seleccionar el clon para que el usuario lo vea
+        Selection.activeGameObject = clone;
+        
+        EditorUtility.DisplayDialog("Baked!", 
+            $"Personaje horneado creado: {clone.name}\n\n" +
+            "Solo contiene las partes activas (sin GameObjects inactivos).\n" +
+            "Ahora puedes convertirlo a prefab manualmente si lo deseas.", 
+            "Ok");
     }
 
     static void RemoveInactiveRecursive(Transform t)
     {
         for (int i = t.childCount - 1; i >= 0; i--)
-            RemoveInactiveRecursive(t.GetChild(i));
-        if (!t.gameObject.activeSelf)
-            Object.DestroyImmediate(t.gameObject);
+        {
+            var child = t.GetChild(i);
+            RemoveInactiveRecursive(child);
+            
+            // Si el GameObject está inactivo, eliminarlo
+            if (!child.gameObject.activeSelf)
+            {
+                Object.DestroyImmediate(child.gameObject);
+            }
+        }
     }
 
     static void RemoveEmptyHolders(Transform t)
@@ -63,6 +61,7 @@ public static class ModularCharacterBaker
         bool hasRenderer = t.GetComponent<Renderer>() || t.GetComponent<SkinnedMeshRenderer>();
         bool hasChildren = t.childCount > 0;
         bool isRoot = t.parent == null;
+        
         if (!isRoot && !hasRenderer && !hasChildren)
             Object.DestroyImmediate(t.gameObject);
     }

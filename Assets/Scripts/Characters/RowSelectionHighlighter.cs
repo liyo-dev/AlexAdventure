@@ -4,52 +4,62 @@ using UnityEngine.UI;
 
 public class RowSelectionHighlighter : MonoBehaviour
 {
-    [Header("Colores")]
-    public Color normalColor   = new Color(0.10f, 0.20f, 0.35f, 1f);
-    public Color selectedColor = new Color(1f, 0.95f, 0.20f, 1f);
+    public Color normalColor   = new Color(1,1,1,0f);
+    public Color selectedColor = new Color(1f,0.92f,0.16f,0.85f);
 
-    readonly List<Image> rows = new();
-    int current = -1;
+    readonly List<Graphic> _rowBacks = new();
+    int _selected = 0;
 
     void Start()
     {
-        Refresh();
-        // Selecciona la primera por si acaso
-        if (rows.Count > 0) SetSelected(0);
-    }
-
-    /// Llama a esto tras construir la UI.
-    public void Refresh()
-    {
-        rows.Clear();
-        foreach (Transform child in transform)
+        // Auto-registrar todas las filas que empiezan con "Row_" en los paneles hijos
+        foreach (Transform panel in transform)
         {
-            if (!child.name.StartsWith("Row_", System.StringComparison.OrdinalIgnoreCase))
-                continue;
-
-            // Coge/crea un Image para poder colorear la fila
-            var img = child.GetComponent<Image>();
-            if (!img)
+            if (!panel.name.StartsWith("Panel_")) continue;
+            
+            foreach (Transform row in panel)
             {
-                img = child.gameObject.AddComponent<Image>();
-                img.raycastTarget = false; // no interferir con botones
+                if (row.name.StartsWith("Row_") && !row.name.Contains("Actions"))
+                {
+                    RegisterRow(row as RectTransform);
+                }
             }
-            img.color = normalColor;
-            rows.Add(img);
         }
-        current = -1;
+        
+        Debug.Log($"RowSelectionHighlighter: {_rowBacks.Count} filas registradas automáticamente");
+        
+        // Selección inicial
+        if (_rowBacks.Count > 0)
+            Refresh();
     }
 
-    public int Count => rows.Count;
+    public void RegisterRow(RectTransform row)
+    {
+        if (!row) return;
+
+        // fondo (Image) para poder tintar la fila
+        var bg = row.GetComponent<Image>();
+        if (bg == null) bg = row.gameObject.AddComponent<Image>();
+        bg.raycastTarget = false;
+        bg.color = normalColor;
+
+        if (!_rowBacks.Contains(bg))
+            _rowBacks.Add(bg);
+    }
 
     public void SetSelected(int index)
     {
-        if (rows.Count == 0) return;
-        index = Mathf.Clamp(index, 0, rows.Count - 1);
-        if (current == index) return;
-
-        if (current >= 0 && current < rows.Count) rows[current].color = normalColor;
-        rows[index].color = selectedColor;
-        current = index;
+        if (_rowBacks.Count == 0) return;
+        _selected = Mathf.Clamp(index, 0, _rowBacks.Count - 1);
+        Refresh();
     }
+
+    public void Refresh()
+    {
+        for (int i = 0; i < _rowBacks.Count; i++)
+            _rowBacks[i].color = (i == _selected) ? selectedColor : normalColor;
+    }
+
+    public int Count => _rowBacks.Count;
+    public int SelectedIndex => _selected;
 }

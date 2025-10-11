@@ -207,65 +207,76 @@ public class ModularAutoBuilder : MonoBehaviour
         i = Mathf.Clamp(i, 0, list.Count - 1);
         SetByName(cat, list[i].name);
     }
-
+    
     public void SetByName(PartCat cat, string nameOrNull)
+{
+    if (!parts.TryGetValue(cat, out var list) || list.Count == 0) return;
+
+    // apaga TODO lo de la categoría actual
+    foreach (var go in list) go.SetActive(false);
+
+    // si piden "None"
+    if (string.IsNullOrEmpty(nameOrNull))
     {
-        if (!parts.TryGetValue(cat, out var list) || list.Count == 0) return;
+        idx.Remove(cat);
 
-        // apaga todo de la categoría
-        foreach (var go in list) go.SetActive(false);
+        // coherencia con Bow -> apaga flechas
+        if (cat == PartCat.Bow) SetByName(PartCat.Arrows, null);
+        return;
+    }
 
-        if (string.IsNullOrEmpty(nameOrNull))
+    // encuentra el índice del elegido
+    int i = list.FindIndex(g => g.name.Equals(nameOrNull, System.StringComparison.OrdinalIgnoreCase));
+    if (i < 0) { idx.Remove(cat); return; }
+
+    var chosen = list[i];
+
+    // ------------------ REGLAS ESPECIALES ------------------
+
+    // 1) Exclusión dura: Hair y Hat no pueden coexistir
+    //    (se ejecuta SIEMPRE que activas uno u otro)
+    if (cat == PartCat.Hat)       TurnOffCategory(PartCat.Hair);
+    else if (cat == PartCat.Hair) TurnOffCategory(PartCat.Hat);
+
+    // 2) Reglas por armas / manos (exclusividad por mano y Bow usa ambas)
+    if (WeaponCats.Contains(cat) || cat == PartCat.Arrows)
+    {
+        var h = handOf.TryGetValue(chosen, out var hh) ? hh : Hand.None;
+
+        if (cat == PartCat.Bow)
         {
-            idx.Remove(cat);
-            if (cat == PartCat.Bow) SetByName(PartCat.Arrows, null);
+            // Bow ocupa ambas manos: apaga todo en ambas y enciende flechas der.
+            TurnOffAllWeapons(Hand.Left);
+            TurnOffAllWeapons(Hand.Right);
+            EnsureAncestorsActive(chosen.transform);
+            chosen.SetActive(true);
+            idx[cat] = i;
+            AutoEnableArrowsRight();
             return;
         }
 
-        int i = list.FindIndex(g => g.name.Equals(nameOrNull, StringComparison.OrdinalIgnoreCase));
-        if (i < 0) { idx.Remove(cat); return; }
-
-        var chosen = list[i];
-
-        // ----- Reglas por mano / armas -----
-        if (WeaponCats.Contains(cat) || cat == PartCat.Arrows)
+        if (cat == PartCat.OHS || cat == PartCat.Shield || cat == PartCat.Arrows)
         {
-            var h = handOf.TryGetValue(chosen, out var hh) ? hh : Hand.None;
-
-            if (cat == PartCat.Bow)
-            {
-                // Bow usa ambas manos ⇒ apaga todo en ambas manos
-                TurnOffAllWeapons(Hand.Left);
-                TurnOffAllWeapons(Hand.Right);
-
-                EnsureAncestorsActive(chosen.transform);
-                chosen.SetActive(true);
-                idx[cat] = i;
-
-                AutoEnableArrowsRight();
-                return;
-            }
-
-            if (cat == PartCat.OHS || cat == PartCat.Shield || cat == PartCat.Arrows)
-            {
-                // apaga TODO lo de esa mano (exclusividad por mano)
-                TurnOffAllWeapons(h);
-            }
-        }
-
-        // Asegura que los ancestros (ej. "head", "weapon_l") están activos
-        EnsureAncestorsActive(chosen.transform);
-
-        chosen.SetActive(true);
-        idx[cat] = i;
-
-        // Consistencia: si enciendo OHS o Shield, apaga Bow/Arrows
-        if (cat == PartCat.OHS || cat == PartCat.Shield)
-        {
-            SetByName(PartCat.Bow, null);
-            SetByName(PartCat.Arrows, null);
+            // exclusividad dentro de la mano de ese objeto
+            TurnOffAllWeapons(h);
         }
     }
+
+    // -------------------------------------------------------
+
+    // Asegura ancestros encendidos y activa la pieza
+    EnsureAncestorsActive(chosen.transform);
+    chosen.SetActive(true);
+    idx[cat] = i;
+
+    // Consistencia: si enciendo OHS o Shield, apaga Bow/Arrows
+    if (cat == PartCat.OHS || cat == PartCat.Shield)
+    {
+        SetByName(PartCat.Bow, null);
+        SetByName(PartCat.Arrows, null);
+    }
+}
+
 
     void EnsureAncestorsActive(Transform t)
     {
@@ -322,4 +333,13 @@ public class ModularAutoBuilder : MonoBehaviour
             }
         }
     }
+    
+    void TurnOffCategory(PartCat cat)
+    {
+        if (!parts.TryGetValue(cat, out var list)) return;
+        foreach (var go in list) go.SetActive(false);
+        idx.Remove(cat);
+    }
+
+
 }

@@ -1,28 +1,21 @@
 using UnityEngine;
 using UnityEngine.UI;
 
+[RequireComponent(typeof(Button))]
 public class UIButtonSetNone : MonoBehaviour
 {
-    public CharacterCreatorUI ui;   // referencia al CharacterCreatorUI del Panel
-    public string category;         // "Hair", "Head", "Cloak", "Body", etc.
-
-    void Reset()
-    {
-        // auto-detectar categoría a partir de "Row_*"
-        var t = transform;
-        while (t != null && !t.name.StartsWith("Row_")) t = t.parent;
-        if (t != null) category = t.name.Substring("Row_".Length);
-    }
+    public CharacterCreatorUI ui;
+    public string category;
 
     void Awake()
     {
         var btn = GetComponent<Button>();
-        if (btn != null) btn.onClick.AddListener(ApplyNone);
-    }
+        btn.onClick.AddListener(() =>
+        {
+            if (ui == null) ui = FindFirstObjectByType<CharacterCreatorUI>();
+            if (ui == null) return;
 
-    void ApplyNone()
-    {
-        if (ui == null) return;
-        ui.SetNone(category);
+            ui.SetNone(category);
+        });
     }
 }

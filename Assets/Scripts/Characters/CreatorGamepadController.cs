@@ -1,86 +1,128 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
-using System.Collections.Generic;
 
 public class CreatorGamepadController : MonoBehaviour
 {
-    public ModularAutoBuilder builder;
-    public RowSelectionHighlighter highlighter; // arrastra Panel aquí
+    public ModularAutoBuilder builder;               // arrastra MC01
+    public RowSelectionHighlighter highlighter;      // arrastra Panel (RowSelectionHighlighter)
+    public CharacterCreatorUI ui;                    // arrastra el componente del Panel
 
-    public List<PartCat> order = new()
-    {
-        PartCat.Body, PartCat.Cloak, PartCat.Head, PartCat.Hair, PartCat.Eyes,
-        PartCat.Mouth, PartCat.Hat, PartCat.Eyebrow, PartCat.Accessory,
-        PartCat.OHS, PartCat.Shield, PartCat.Bow
-    };
-
-    int rowIndex = 0;
-    PlayerControls input;
+    PlayerControls _input;
+    float _lastNavY;
+    float _lastNavX;
 
     void Awake()
     {
-        input = new PlayerControls();
-        input.Enable();
+        _input = new PlayerControls();
     }
+
+    void OnEnable()
+    {
+        _input.Enable();
+        _input.UI.Enable();
+        _input.GamePlay.Enable();
+    }
+
+    void OnDisable()
+    {
+        _input.UI.Disable();
+        _input.GamePlay.Disable();
+        _input.Disable();
+    }
+
+    void OnDestroy() => _input?.Disable();
 
     void Start()
     {
-        // Asegura filas detectadas y resaltado inicial
+        // Selección visual inicial
+        Debug.Log($"Start - Highlighter: {(highlighter != null ? "OK" : "NULL")}");
         if (highlighter)
+            Debug.Log($"Highlighter Count: {highlighter.Count}");
+        
+        if (highlighter && highlighter.Count > 0) 
         {
-            highlighter.Refresh();
-            highlighter.SetSelected(rowIndex);
+            highlighter.SetSelected(0);
+            Debug.Log("Selección inicial establecida en 0");
+        }
+        else
+        {
+            Debug.LogError("ERROR: Highlighter es null o no tiene filas registradas!");
         }
     }
-
-    void OnDestroy() => input?.Disable();
 
     void Update()
     {
-        HandleDpadRows();
-        HandleActions();
-    }
+        if (builder == null) return;
 
-    void HandleDpadRows()
-    {
-        var gp = Gamepad.current;
-        if (gp != null)
+        // --- D-Pad / stick VERTICAL para cambiar categoría (arriba/abajo) ---
+        Vector2 nav = _input.UI.Navigate.ReadValue<Vector2>();
+        
+        // Abajo: categoría siguiente
+        if (nav.y < -0.5f && _lastNavY >= -0.5f)
         {
-            bool moved = false;
-
-            if (gp.dpad.up.wasPressedThisFrame)
+            Debug.Log("Abajo detectado");
+            Debug.Log($"Highlighter null? {highlighter == null}");
+            if (highlighter)
             {
-                rowIndex = Mathf.Max(0, rowIndex - 1);
-                moved = true;
+                Debug.Log($"Highlighter.Count = {highlighter.Count}");
+                Debug.Log($"SelectedIndex actual = {highlighter.SelectedIndex}");
             }
-            else if (gp.dpad.down.wasPressedThisFrame)
+            
+            if (highlighter && highlighter.Count > 0)
             {
-                rowIndex = Mathf.Min(order.Count - 1, rowIndex + 1);
-                moved = true;
+                int newIndex = highlighter.SelectedIndex + 1;
+                if (newIndex >= highlighter.Count) newIndex = 0;
+                Debug.Log($"Intentando cambiar a índice: {newIndex}");
+                highlighter.SetSelected(newIndex);
+                Debug.Log($"Nueva selección: {newIndex}");
             }
-
-            if (moved && highlighter) highlighter.SetSelected(rowIndex);
+            else
+            {
+                Debug.LogError("No se puede cambiar selección: highlighter null o sin filas");
+            }
         }
-    }
-
-    void HandleActions()
-    {
-        var cat = order[rowIndex];
-
-        // A -> siguiente
-        if (input.UI.Submit.WasPressedThisFrame())
-            builder.Next(cat);
-
-        // X -> anterior (usamos AttackMagicWest del mapa GamePlay)
-        if (input.GamePlay.AttackMagicWest.WasPressedThisFrame())
-            builder.Prev(cat);
-
-        // B -> on/off
-        if (input.UI.Cancel.WasPressedThisFrame())
+        
+        // Arriba: categoría anterior
+        if (nav.y > 0.5f && _lastNavY <= 0.5f)
         {
+            Debug.Log("Arriba detectado");
+            if (highlighter && highlighter.Count > 0)
+            {
+                int newIndex = highlighter.SelectedIndex - 1;
+                if (newIndex < 0) newIndex = highlighter.Count - 1;
+                Debug.Log($"Intentando cambiar a índice: {newIndex}");
+                highlighter.SetSelected(newIndex);
+                Debug.Log($"Nueva selección: {newIndex}");
+            }
+        }
+        
+        _lastNavY = nav.y;
+
+        // Categoría actual según highlight
+        var cat = ui ? ui.CurrentHighlightedCategory() : PartCat.Body;
+
+        // --- A = Siguiente variante (derecha) ---
+        if (_input.UI.Submit.WasPressedThisFrame())
+        {
+            Debug.Log($"A presionado - Next en {cat}");
+            builder.Next(cat);
+        }
+
+        // --- X = Variante anterior (izquierda) ---
+        if (_input.GamePlay.AttackMagicWest.WasPressedThisFrame())
+        {
+            Debug.Log($"X presionado - Prev en {cat}");
+            builder.Prev(cat);
+        }
+
+        // --- B = Toggle on/off ---
+        if (_input.UI.Cancel.WasPressedThisFrame())
+        {
+            Debug.Log($"B presionado - Toggle {cat}");
             var sel = builder.GetSelection();
-            if (sel.ContainsKey(cat)) builder.SetByName(cat, null);
-            else                      builder.SetByIndex(cat, 0);
+            if (sel.ContainsKey(cat))
+                builder.SetByName(cat, null);          // apagar
+            else
+                builder.SetByIndex(cat, 0);            // encender el primero
         }
     }
 }

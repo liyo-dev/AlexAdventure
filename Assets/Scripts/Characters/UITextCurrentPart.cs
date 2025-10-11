@@ -1,27 +1,32 @@
 using UnityEngine;
 using UnityEngine.UI;
-using System;
 
 public class UITextCurrentPart : MonoBehaviour
 {
     public ModularAutoBuilder builder;
-    public string category; // "Head", "Body", etc.
+    public string category;
 
-    Text t; PartCat cat; bool ok;
+    Text _txt;
 
     void Awake()
     {
-        t = GetComponent<Text>();
-        ok = Enum.TryParse(category, out cat);
+        _txt = GetComponent<Text>();
+        if (builder == null) builder = FindFirstObjectByType<ModularAutoBuilder>();
     }
 
-    void Update()
+    void OnEnable()  => Refresh();
+    void Update()    => Refresh();
+
+    void Refresh()
     {
-        if (!ok || builder == null) return;
+        if (_txt == null || builder == null) return;
+        if (!System.Enum.TryParse(category, out PartCat cat))
+        {
+            _txt.text = "-";
+            return;
+        }
+
         var sel = builder.GetSelection();
-        if (sel.TryGetValue(cat, out var part))
-            t.text = part;
-        else
-            t.text = "-";
+        _txt.text = sel.TryGetValue(cat, out var name) ? name : "None";
     }
 }

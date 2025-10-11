@@ -6,10 +6,10 @@ using UnityEngine.EventSystems;
 
 public static class CharacterCreatorCanvasBuilder
 {
-    static readonly string[] Cats = {
-        "Body","Cloak","Head","Hair","Eyes","Mouth","Hat","Eyebrow","Accessory",
-        "OHS","Shield","Bow"
+    static readonly string[] LeftCats = {
+        "Body","Cloak","Head","Hair","Eyes","Mouth","Hat","Eyebrow","Accessory"
     };
+    static readonly string[] RightCats = { "OHS","Shield","Bow" };
 
     [MenuItem("Tools/Modular Characters/Create Character Creator Canvas (Designer Only)")]
     public static void CreateCanvas()
@@ -26,7 +26,9 @@ public static class CharacterCreatorCanvasBuilder
         if (!Object.FindFirstObjectByType<EventSystem>())
             new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
 
-        var canvasGO = new GameObject("UI_Canvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
+        // Canvas base
+        var canvasGO = new GameObject("UI_Canvas",
+            typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
         Undo.RegisterCreatedObjectUndo(canvasGO, "Create Character Creator Canvas");
         var canvas = canvasGO.GetComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
@@ -35,63 +37,66 @@ public static class CharacterCreatorCanvasBuilder
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution = new Vector2(1920, 1080);
 
-        // Panel contenedor (columna izquierda)
-        var panel = New("Panel", canvasGO.transform, typeof(Image), typeof(VerticalLayoutGroup));
-        panel.GetComponent<Image>().color = new Color(0.07f, 0.13f, 0.23f, 0.95f);
+        // Highlighter ÚNICO (para ambas columnas)
+        var hi = canvasGO.AddComponent<RowSelectionHighlighter>();
+        hi.normalColor   = new Color(1, 1, 1, 0.00f);
+        hi.selectedColor = new Color(1f, 0.92f, 0.16f, 0.85f);
 
-        var v = panel.GetComponent<VerticalLayoutGroup>();
-        v.spacing = 8; v.padding = new RectOffset(16, 16, 16, 16);
-        v.childForceExpandHeight = false; v.childForceExpandWidth = false;
-
-        var ui = panel.AddComponent<CharacterCreatorUI>();
+        // UI Controller
+        var ui = canvasGO.AddComponent<CharacterCreatorUI>();
         ui.builder = builder;
+        ui.highlighter = hi;
 
-        foreach (var c in Cats)
-        {
-            var row = New($"Row_{c}", panel.transform, typeof(HorizontalLayoutGroup));
-            var h = row.GetComponent<HorizontalLayoutGroup>();
-            h.spacing = 6; h.childForceExpandWidth = false; h.childForceExpandHeight = false;
+        // Actions Controller (para conectar botones Random y Bake en runtime)
+        var actions = canvasGO.AddComponent<CharacterCreatorActions>();
+        actions.ui = ui;
+        actions.builder = builder;
 
-            MakeText(row.transform, c, 22, TextAnchor.MiddleLeft, new Vector2(160, 48));
+        // ===== Panel izquierdo =====
+        var left = NewPanel("Panel_Left", canvasGO.transform);
+        var vLeft = left.GetComponent<VerticalLayoutGroup>();
+        vLeft.spacing = 8; vLeft.padding = new RectOffset(16,16,16,16);
+        vLeft.childForceExpandHeight = false; vLeft.childForceExpandWidth = false;
 
-            var prev = MakeButton(row.transform, "◄", new Vector2(60, 48));
-            var prevStep = prev.AddComponent<UIButtonStep>();
-            prevStep.ui = ui; prevStep.category = c; prevStep.step = -1;
+        var rtL = left.GetComponent<RectTransform>();
+        rtL.anchorMin = new Vector2(0f, 1f);
+        rtL.anchorMax = new Vector2(0f, 1f);
+        rtL.pivot     = new Vector2(0f, 1f);
+        rtL.sizeDelta = new Vector2(600f, 1200f);
+        rtL.anchoredPosition = new Vector2(20f, -20f);
 
-            var next = MakeButton(row.transform, "►", new Vector2(60, 48));
-            var nextStep = next.AddComponent<UIButtonStep>();
-            nextStep.ui = ui; nextStep.category = c; nextStep.step = +1;
+        foreach (var c in LeftCats)
+            MakeRow(left.transform, c, builder, hi);
 
-            var none = MakeButton(row.transform, "None", new Vector2(90, 48));
-            var noneComp = none.AddComponent<UIButtonSetNone>();
-            noneComp.ui = ui; noneComp.category = c;
+        // Acciones en el panel izquierdo
+        var actionsPanel = New("Row_Actions", left.transform, typeof(HorizontalLayoutGroup));
+        actionsPanel.GetComponent<HorizontalLayoutGroup>().spacing = 10;
 
-            var active = MakeText(row.transform, "-", 18, TextAnchor.MiddleLeft, new Vector2(320, 48));
-            var watch = active.gameObject.AddComponent<UITextCurrentPart>();
-            watch.builder = builder; watch.category = c;
-        }
-
-        // Acciones
-        var actions = New("Row_Actions", panel.transform, typeof(HorizontalLayoutGroup));
-        actions.GetComponent<HorizontalLayoutGroup>().spacing = 10;
-
-        var random = MakeButton(actions.transform, "Random", new Vector2(140, 54));
+        var random = MakeButton(actionsPanel.transform, "Random", new Vector2(140, 54));
         random.GetComponent<Button>().onClick.AddListener(ui.RandomizeAll);
 
-        var bake = MakeButton(actions.transform, "Bake NPC (Editor)", new Vector2(220, 54));
+        var bake = MakeButton(actionsPanel.transform, "Bake NPC (Editor)", new Vector2(220, 54));
         bake.GetComponent<Button>().onClick.AddListener(() =>
         {
             Selection.activeGameObject = builder.gameObject;
             ModularCharacterBaker.BakeSelected();
         });
 
-        // ===== Alineación y tamaño del Panel =====
-        var rt = panel.GetComponent<RectTransform>();
-        rt.anchorMin = new Vector2(0f, 1f);   // esquina superior izquierda
-        rt.anchorMax = new Vector2(0f, 1f);
-        rt.pivot     = new Vector2(0f, 1f);
-        rt.sizeDelta = new Vector2(600f, 1200f); // ancho 600, alto 1200
-        rt.anchoredPosition = new Vector2(20f, -20f); // margen 20px a la derecha y abajo
+        // ===== Panel derecho (armas) =====
+        var right = NewPanel("Panel_Right", canvasGO.transform);
+        var vRight = right.GetComponent<VerticalLayoutGroup>();
+        vRight.spacing = 8; vRight.padding = new RectOffset(16,16,16,16);
+        vRight.childForceExpandHeight = false; vRight.childForceExpandWidth = false;
+
+        var rtR = right.GetComponent<RectTransform>();
+        rtR.anchorMin = new Vector2(1f, 1f);
+        rtR.anchorMax = new Vector2(1f, 1f);
+        rtR.pivot     = new Vector2(1f, 1f);
+        rtR.sizeDelta = new Vector2(600f, 1200f);
+        rtR.anchoredPosition = new Vector2(-20f, -20f);
+
+        foreach (var c in RightCats)
+            MakeRow(right.transform, c, builder, hi);
 
         Selection.activeGameObject = canvasGO;
     }
@@ -104,6 +109,13 @@ public static class CharacterCreatorCanvasBuilder
         var go = new GameObject(n, t);
         go.transform.SetParent(p, false);
         return go;
+    }
+
+    static GameObject NewPanel(string name, Transform parent)
+    {
+        var p = New(name, parent, typeof(Image), typeof(VerticalLayoutGroup));
+        p.GetComponent<Image>().color = new Color(0.07f, 0.13f, 0.23f, 0.95f);
+        return p;
     }
 
     static Text MakeText(Transform p, string txt, int size, TextAnchor a, Vector2 dim)
@@ -131,6 +143,38 @@ public static class CharacterCreatorCanvasBuilder
         tr.offsetMin = tr.offsetMax = Vector2.zero;
 
         return go;
+    }
+
+    static void MakeRow(Transform parent, string category, ModularAutoBuilder builder,
+                        RowSelectionHighlighter hi)
+    {
+        var row = New($"Row_{category}", parent, typeof(HorizontalLayoutGroup));
+        var h = row.GetComponent<HorizontalLayoutGroup>();
+        h.spacing = 6; h.childForceExpandWidth = false; h.childForceExpandHeight = false;
+
+        MakeText(row.transform, category, 22, TextAnchor.MiddleLeft, new Vector2(160, 48));
+
+        var prev = MakeButton(row.transform, "◄", new Vector2(60, 48));
+        var prevStep = prev.AddComponent<UIButtonStep>();
+        prevStep.ui = Object.FindFirstObjectByType<CharacterCreatorUI>();
+        prevStep.category = category; prevStep.step = -1;
+
+        var next = MakeButton(row.transform, "►", new Vector2(60, 48));
+        var nextStep = next.AddComponent<UIButtonStep>();
+        nextStep.ui = Object.FindFirstObjectByType<CharacterCreatorUI>();
+        nextStep.category = category; nextStep.step = +1;
+
+        var none = MakeButton(row.transform, "None", new Vector2(90, 48));
+        var noneComp = none.AddComponent<UIButtonSetNone>();
+        noneComp.ui = Object.FindFirstObjectByType<CharacterCreatorUI>();
+        noneComp.category = category;
+
+        var active = MakeText(row.transform, "-", 18, TextAnchor.MiddleLeft, new Vector2(320, 48));
+        var watch = active.gameObject.AddComponent<UITextCurrentPart>();
+        watch.builder = builder; watch.category = category;
+
+        // registrar fila en el highlighter global
+        if (hi) hi.RegisterRow(row.transform as RectTransform);
     }
 }
 #endif
