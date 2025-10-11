@@ -93,4 +93,48 @@ public class QuestManager : MonoBehaviour
             }).ToArray() : new QuestStep[0];
         }
     }
+    
+    public void StartQuest(string questId)
+    {
+        if (!runtime.TryGetValue(questId, out var rq))
+        {
+            var data = questCatalog.FirstOrDefault(q => q.questId == questId);
+            if (data == null) return;
+            rq = new RuntimeQuest(data);
+            runtime[questId] = rq;
+        }
+        if (rq.State == QuestState.Inactive) rq.State = QuestState.Active;
+        OnQuestsChanged?.Invoke();
+    }
+
+    public bool AreAllStepsCompleted(string questId)
+    {
+        if (!runtime.TryGetValue(questId, out var rq)) return false;
+        if (rq.Steps == null || rq.Steps.Length == 0) return true;
+        foreach (var s in rq.Steps) if (!s.completed) return false;
+        return true;
+    }
+
+    public void CompleteQuest(string questId)
+    {
+        if (!runtime.TryGetValue(questId, out var rq)) return;
+        rq.State = QuestState.Completed;
+        OnQuestsChanged?.Invoke();
+    }
+    
+    public void MarkStepDone(string questId, int stepIndex)
+    {
+        if (!runtime.TryGetValue(questId, out var rq)) return;
+        if (stepIndex < 0 || stepIndex >= rq.Steps.Length) return;
+        rq.Steps[stepIndex].completed = true;
+        OnQuestsChanged?.Invoke();
+    }
+
+    public bool IsStepCompleted(string questId, int stepIndex)
+    {
+        if (!runtime.TryGetValue(questId, out var rq)) return false;
+        if (stepIndex < 0 || stepIndex >= rq.Steps.Length) return false;
+        return rq.Steps[stepIndex].completed;
+    }
+
 }

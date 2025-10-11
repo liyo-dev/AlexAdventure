@@ -5,96 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9eabfba9-47fb-4d93-81a2-90082062f2b7" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Assets/Editor/CharacterCreatorPersistence.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Editor/CharacterCreatorPersistence.cs.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Scripts/Characters/CharacterCreatorActions.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Scripts/Characters/CharacterCreatorActions.cs.meta" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Scripts/UI/UIDebugHelper.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Assets/Scripts/UI/UIDebugHelper.cs.meta" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.Oblivion/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Oblivion/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Animator/MC_Weapon.controller" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Animator/MC_Weapon.controller.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Art/Music.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Art/Music/01_Introduction - Yoshiki Ara - SoundLoadMate.com.mp3" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Art/Music/01_Introduction - Yoshiki Ara - SoundLoadMate.com.mp3.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Art/Music/02_Eat is to live - Yoshiki Ara - SoundLoadMate.com.mp3" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Art/Music/02_Eat is to live - Yoshiki Ara - SoundLoadMate.com.mp3.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Art/Music/03_White lake forest - Yoshiki Ara - SoundLoadMate.com.mp3" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Art/Music/03_White lake forest - Yoshiki Ara - SoundLoadMate.com.mp3.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Art/Music/04_Little Miss Screw Loose - Yoshiki Ara - SoundLoadMate.com.mp3" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Art/Music/04_Little Miss Screw Loose - Yoshiki Ara - SoundLoadMate.com.mp3.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Art/Music/05_Main street - Yoshiki Ara - SoundLoadMate.com.mp3" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Art/Music/05_Main street - Yoshiki Ara - SoundLoadMate.com.mp3.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Art/Music/06_Poster girl - Yoshiki Ara - SoundLoadMate.com.mp3" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Art/Music/06_Poster girl - Yoshiki Ara - SoundLoadMate.com.mp3.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Art/Music/07_Meadow of Skylarks - Yoshiki Ara - SoundLoadMate.com.mp3" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Art/Music/07_Meadow of Skylarks - Yoshiki Ara - SoundLoadMate.com.mp3.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Art/Music/08_Beyond the Ice Wall - Yoshiki Ara - SoundLoadMate.com.mp3" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Art/Music/08_Beyond the Ice Wall - Yoshiki Ara - SoundLoadMate.com.mp3.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Art/Music/09_Thorny Forest - Yoshiki Ara - SoundLoadMate.com.mp3" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Art/Music/09_Thorny Forest - Yoshiki Ara - SoundLoadMate.com.mp3.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Art/Music/10_Tiny Friend - Yoshiki Ara - SoundLoadMate.com.mp3" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Art/Music/10_Tiny Friend - Yoshiki Ara - SoundLoadMate.com.mp3.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Art/Music/11_In the Mountain Cabin - Yoshiki Ara - SoundLoadMate.com.mp3" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Art/Music/11_In the Mountain Cabin - Yoshiki Ara - SoundLoadMate.com.mp3.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Art/Music/12_Blue Spring - Yoshiki Ara - SoundLoadMate.com.mp3" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Art/Music/12_Blue Spring - Yoshiki Ara - SoundLoadMate.com.mp3.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Art/Music/13_Avian Sanctuary - Yoshiki Ara - SoundLoadMate.com.mp3" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Art/Music/13_Avian Sanctuary - Yoshiki Ara - SoundLoadMate.com.mp3.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Editor/CharacterCreatorCanvasBuilder.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Editor/CharacterCreatorCanvasBuilder.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Editor/ModularCharacterBaker.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Editor/ModularCharacterBaker.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Fonts/Nunito-ExtraBold SDF.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Fonts/Nunito-ExtraBold SDF.asset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Fonts/Nunito-Regular SDF.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Fonts/Nunito-Regular SDF.asset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Fonts/Nunito-SemiBold SDF.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Fonts/Nunito-SemiBold SDF.asset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefab.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefab/Canvas Skip.prefab" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefab/Canvas Skip.prefab.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefab/EnemyMarker.prefab" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefab/EnemyMarker.prefab.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefab/FallingPath.prefab" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefab/FallingPath.prefab.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefab/PF_PortalExit.prefab" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefab/PF_PortalExit.prefab.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefab/Plate.prefab" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefab/Plate.prefab.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefab/Pushable.prefab" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefab/Pushable.prefab.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefab/Rooms.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefab/Rooms/Room_Base.prefab" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefab/Rooms/Room_Base.prefab.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefab/Rooms/Room_Boss.prefab" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefab/Rooms/Room_Boss.prefab.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefab/Rooms/Room_Enemies.prefab" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefab/Rooms/Room_Enemies.prefab.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefab/Rooms/Room_FallingPath.prefab" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefab/Rooms/Room_FallingPath.prefab.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefab/Rooms/Room_Pressure.prefab" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefab/Rooms/Room_Pressure.prefab.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefab/Rooms/Room_Start.prefab" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefab/Rooms/Room_Start.prefab.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefab/Rooms/Room_Torch.prefab" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefab/Rooms/Room_Torch.prefab.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefab/Spider1.prefab" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefab/Spider1.prefab.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefab/TorchInteract.prefab" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefab/TorchInteract.prefab.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scenes/CharacterCreator.unity" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scenes/CharacterCreator.unity.meta" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scenes/Main World/MainWorld.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scenes/Main World/MainWorld.unity" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scenes/Procedural.unity" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scenes/Procedural.unity.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scenes/Systems/MainMenu.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scenes/Systems/MainMenu.unity" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scenes/Systems/Start.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scenes/Systems/Start.unity" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scenes/TerrainTest.unity" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scenes/TerrainTest.unity.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Characters/CharacterCreatorUI.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Characters/CharacterCreatorUI.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Characters/CreatorGamepadController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Characters/CreatorGamepadController.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Characters/ModularAutoBuilder.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Characters/ModularAutoBuilder.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Characters/RowSelectionHighlighter.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Characters/RowSelectionHighlighter.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Characters/UIButtonSetNone.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Characters/UIButtonSetNone.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Characters/UIButtonStep.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Characters/UIButtonStep.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Characters/UITextCurrentPart.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Characters/UITextCurrentPart.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/UI/MainMenuController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/UI/MainMenuController.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Core/SO/GameBootProfile.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Core/SO/GameBootProfile.asset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Player/SO/PlayerPreset_Loaded.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Player/SO/PlayerPreset_Loaded.asset" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -125,6 +41,8 @@
     <setting file="file://$PROJECT_DIR$/Assets/Editor/ModularCharacterBaker.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Fonts/Nunito-SemiBold SDF.asset" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Plugins/IAttackHitbox.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/luarb/dev/unity/oblivion/Assets/Scenes/Main World/MainWorld.unity" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Scenes/Main World/MainWorld.unity" root0="FORCE_HIGHLIGHTING" />
     <setting file="mock://C:/Users/luarb/dev/unity/oblivion/Assets/Scenes/Systems/MainMenu.unity" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scenes/Systems/MainMenu.unity" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Characters/CharacterCreatorActions.cs" root0="FORCE_HIGHLIGHTING" />
@@ -133,6 +51,7 @@
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Characters/OrbitPreview.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Characters/RowSelectionHighlighter.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Characters/UITextCurrentPart.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/luarb/dev/unity/oblivion/Assets/Scripts/Cinematics/AdditiveSceneCinematic.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Cinematics/AdditiveSceneCinematic.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Core/Feedback/IScreenFlashProvider.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Core/Feedback/ISfxProvider.cs" root0="FORCE_HIGHLIGHTING" />
@@ -181,6 +100,9 @@
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/World/AnchorEnvironment.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/World/AnchorRegistry.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/World/EnvironmentController.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/luarb/dev/unity/oblivion/Assets/Scripts/World/TeleportService.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/luarb/dev/unity/oblivion/Assets/Scripts/World/TeleportService.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/luarb/dev/unity/oblivion/ProjectSettings/EditorBuildSettings.asset" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
   <component name="ProblemsViewState">
@@ -312,7 +234,7 @@
       <workItem from="1760077859447" duration="3180000" />
       <workItem from="1760084887329" duration="6158000" />
       <workItem from="1760108739753" duration="5612000" />
-      <workItem from="1760161676267" duration="16290000" />
+      <workItem from="1760161676267" duration="19784000" />
     </task>
     <task id="LOCAL-00001" summary="Add new asset metadata files for various components in the project">
       <option name="closed" value="true" />

@@ -26,5 +26,5 @@ MonoBehaviour:
     text: "\xA1Aparece un fantasma!"
     portrait: {fileID: 0}
   - speakerName: "Ver\xF3nica"
-    text: Ven a verme si lo pruebas y te pasa...
+    text: Mejor no lo pruebes...
     portrait: {fileID: 0}

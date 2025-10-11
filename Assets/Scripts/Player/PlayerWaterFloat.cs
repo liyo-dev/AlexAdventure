@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(Animator))]
 public class PlayerWaterFloat : MonoBehaviour
 {
     [Header("Configuración de Flotación")]
@@ -14,10 +15,15 @@ public class PlayerWaterFloat : MonoBehaviour
     [Tooltip("Límite de velocidad vertical descendente dentro del agua")]
     [SerializeField, Min(0f)] private float maxDownwardSpeed = 6f;
     
+    [Header("Animaciones")]
+    [SerializeField] private string swimmingAnimationName = "Swimming_Floating_NoWeapon";
+    [SerializeField] private string idleAnimationName = "Idle_Normal_NoWeapon";
+    
     [Header("Debug")]
     [SerializeField] private bool showDebugInfo = false;
     
     private Rigidbody rb;
+    private Animator animator;
     private Collider playerCollider;
     private float originalDrag;
     private float originalAngularDrag;
@@ -28,9 +34,16 @@ public class PlayerWaterFloat : MonoBehaviour
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
+        animator = GetComponent<Animator>();
         playerCollider = GetComponent<Collider>();
         originalDrag = rb.linearDamping;
         originalAngularDrag = rb.angularDamping;
+        
+        // Validar que tenemos el Animator
+        if (animator == null)
+        {
+            Debug.LogError("[PlayerWaterFloat] No se encontró el componente Animator en el jugador.");
+        }
     }
     
     private void OnTriggerEnter(Collider other)
@@ -87,6 +100,14 @@ public class PlayerWaterFloat : MonoBehaviour
         rb.linearDamping = waterDrag;
         rb.angularDamping = waterAngularDrag;
         
+        // Cambiar a animación de natación
+        if (animator != null && !string.IsNullOrEmpty(swimmingAnimationName))
+        {
+            animator.Play(swimmingAnimationName);
+            if (showDebugInfo)
+                Debug.Log($"[PlayerWaterFloat] Reproduciendo animación: {swimmingAnimationName}");
+        }
+        
         if (showDebugInfo)
             Debug.Log($"[PlayerWaterFloat] Jugador entró al agua. Superficie Y: {waterSurfaceY}");
     }
@@ -101,6 +122,14 @@ public class PlayerWaterFloat : MonoBehaviour
         // Restaurar propiedades físicas originales
         rb.linearDamping = originalDrag;
         rb.angularDamping = originalAngularDrag;
+        
+        // Volver a animación idle
+        if (animator != null && !string.IsNullOrEmpty(idleAnimationName))
+        {
+            animator.Play(idleAnimationName);
+            if (showDebugInfo)
+                Debug.Log($"[PlayerWaterFloat] Reproduciendo animación: {idleAnimationName}");
+        }
         
         if (showDebugInfo)
             Debug.Log("[PlayerWaterFloat] Jugador salió del agua");

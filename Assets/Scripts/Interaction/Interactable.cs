@@ -6,12 +6,14 @@ using UnityEngine.Events;
 public class Interactable : MonoBehaviour
 {
     public enum Mode { OpenDialogue, HandOffToTarget }
+    
+    public enum SessionSelect { UseField, AutoFirstOnThisGO, ByTypeName }
 
     [Header("Modo")]
     [SerializeField] private Mode mode = Mode.OpenDialogue;
 
     [Header("Hint (icono botón)")]
-    [SerializeField] private GameObject hint;           // Canvas/Sprite en World Space
+    [SerializeField] private GameObject hint;
     [SerializeField] private bool hideHintAtStart = true;
 
     [Header("Uso")]
@@ -19,17 +21,13 @@ public class Interactable : MonoBehaviour
     [SerializeField] private bool initiallyEnabled = true;
 
     [Header("Abrir diálogo")]
-    [SerializeField] private DialogueAsset dialogue;     // usado en OpenDialogue
-
-    [Header("Ceder control")]
-    [Tooltip("Objeto que implementa IInteractionSession (por ej. UnityEventSession, tu cofre, tu panel, etc.).")]
-    [SerializeField] private MonoBehaviour sessionTarget; // debe implementar IInteractionSession
+    [SerializeField] private DialogueAsset dialogue;
 
     [Header("Eventos opcionales")]
-    public UnityEvent<GameObject> OnInteract;     // justo al pulsar (antes de abrir)
-    public UnityEvent OnStarted;                  // cuando arranca (diálogo o sesión)
-    public UnityEvent OnFinished;                 // cuando acaba (cierra diálogo o sesión)
-    public UnityEvent OnConsumed;                 // primera vez si singleUse
+    public UnityEvent<GameObject> OnInteract;
+    public UnityEvent OnStarted;
+    public UnityEvent OnFinished;
+    public UnityEvent OnConsumed;
 
     // ---- estado ----
     bool used, enabledForUse;
@@ -40,7 +38,6 @@ public class Interactable : MonoBehaviour
         if (hint && hideHintAtStart) hint.SetActive(false);
     }
 
-    // Llamado por el detector del player
     public void SetHintVisible(bool visible)
     {
         if (hint) hint.SetActive(visible && !used && enabledForUse);
@@ -48,7 +45,6 @@ public class Interactable : MonoBehaviour
 
     public bool CanInteract(GameObject _)
     {
-        // Evita spam si hay diálogo abierto
         if (DialogueManager.Instance != null && DialogueManager.Instance.IsOpen) return false;
         return enabledForUse && (!singleUse || !used);
     }
@@ -63,10 +59,6 @@ public class Interactable : MonoBehaviour
         {
             case Mode.OpenDialogue:
                 StartDialogue(interactor);
-                break;
-
-            case Mode.HandOffToTarget:
-                StartHandOff(interactor);
                 break;
         }
     }
@@ -85,24 +77,6 @@ public class Interactable : MonoBehaviour
         else
         {
             Debug.LogWarning($"[Interactable] No hay DialogueAsset o DialogueManager para {name}.");
-            AfterUse();
-        }
-    }
-
-    void StartHandOff(GameObject interactor)
-    {
-        if (sessionTarget is IInteractionSession session)
-        {
-            OnStarted?.Invoke();
-            session.BeginSession(interactor, () =>
-            {
-                OnFinished?.Invoke();
-                AfterUse();
-            });
-        }
-        else
-        {
-            Debug.LogWarning($"[Interactable] sessionTarget de {name} no implementa IInteractionSession.");
             AfterUse();
         }
     }
@@ -126,5 +100,4 @@ public class Interactable : MonoBehaviour
 
     public void SetDialogue(DialogueAsset asset) => dialogue = asset;
     public void SetMode(Mode newMode) => mode = newMode;
-    public void SetSessionTarget(MonoBehaviour target) => sessionTarget = target;
 }
