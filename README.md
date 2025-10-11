@@ -1,4 +1,4 @@
-# Oblivion
+# AlexAdventure
 
 *[🇪🇸 Versión en Español](README_ES.md)*
 
@@ -6,7 +6,7 @@ A 3D action game built with Unity featuring magic and melee combat systems in a 
 
 ## 🎮 Overview
 
-Oblivion is a third-person action game that combines magical and physical combat mechanics. Players navigate through fantasy environments using a variety of attacks, spells, and abilities to overcome challenges and enemies.
+AlexAdventure is a third-person action game that combines magical and physical combat mechanics. Players navigate through fantasy environments using a variety of attacks, spells, and abilities to overcome challenges and enemies.
 
 ## ✨ Features
 
@@ -66,7 +66,7 @@ Oblivion is a third-person action game that combines magical and physical combat
 ### Installation Steps
 1. Clone the repository:
    ```bash
-   git clone https://github.com/liyo-dev/oblivion.git
+   git clone https://github.com/liyo-dev/AlexAdventure.git
    ```
 
 2. Open Unity Hub and add the project folder
