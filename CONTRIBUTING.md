@@ -1,6 +1,6 @@
-# Contributing to Oblivion
+# Contributing to AlexAdventure
 
-Thank you for your interest in contributing to Oblivion! This document provides guidelines and information for contributors.
+Thank you for your interest in contributing to AlexAdventure! This document provides guidelines and information for contributors.
 
 ## 🚀 Getting Started
 
@@ -170,4 +170,4 @@ Contributors will be recognized in:
 - In-game credits (for significant contributions)
 - Release notes
 
-Thank you for helping make Oblivion better! 🎮✨
+Thank you for helping make AlexAdventure better! 🎮✨
